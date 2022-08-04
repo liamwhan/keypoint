@@ -1,0 +1,24 @@
+{
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^4.7.4"
+  },
+  "name": "keypoint",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liamwhan/keypoint.git"
+  },
+  "author": "Liam Whan",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/liamwhan/keypoint/issues"
+  },
+  "homepage": "https://github.com/liamwhan/keypoint#readme",
+  "description": ""
+}

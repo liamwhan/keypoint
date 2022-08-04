@@ -1,2 +1,5 @@
-[align=center valign=center font="Poppins SemiBold" font-size=14px background=#FFFFFF]
-The is a test
+# background=#FFFFFFF
+[align=center valign=center font="Poppins" font-size=14px offset=t10,l-10]
+This is a test
+
+\
