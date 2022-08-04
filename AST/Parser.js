@@ -35,7 +35,9 @@ function parseSlideProperties(token)
     const userProperties = {};
     for(let p of userProps)
     {
-        userProperties[p[0]] = p[1];
+        const s = p.split("=");
+        if (s.length < 2) throw new SyntaxError("SlideProperties mismatched key value pair")
+        userProperties[s[0]] = s[1];
     }
     return {
         type: "SlideProperties",
@@ -46,7 +48,11 @@ function parseSlideProperties(token)
 function parseContentString(token)
 {
     if (token.type != "ContentString") throw new Error("Parse Error: parseContentString called on token that is not a ContentString. Token Type: ", token.type);
-    return token.value;
+    return {
+        type: "Content", 
+        contentType: "string",
+        value: token.value
+    };
 }
 
 
