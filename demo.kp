@@ -1,5 +1,11 @@
-# background=#FF0000
+# background=#3083DC
 [align=center valign=center font="Poppins" font-size=60px font-color=#000000 offset=t10,l-10]
 This is a test
-
 \
+# background=#7FB285
+[align=left valign=center font="Arial" font-size=60px font-color=#FFFFFF]
+This is another slide
+\
+# background=#CC3363
+[align=right valign=bottom font="Helvetica" font-size=60px font-color=#FFFFFF]
+This is the last slide

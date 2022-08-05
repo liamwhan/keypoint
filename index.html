@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self';">
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval';">
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval';" />
   <title>Keypoint</title>
   <style>
     html, body {
@@ -26,6 +26,8 @@
 <body>
   <canvas id="cnv"></canvas>
 </body>
+<script src="./System/PubSub.js"></script>
 <script src="./sliderenderer.js"></script>
+<script src="./System/InputManager.js"></script>
 <script src="./renderer.js"></script>
 </html>
