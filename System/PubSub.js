@@ -1,6 +1,7 @@
 const Channels = {
     "KEYDOWN"               : "KEYDOWN",
-    "KEYUP"                 : "KEYUP"
+    "KEYUP"                 : "KEYUP",
+    "DOC_LOADED"            : "DOC_LOADED"
 };
 
 class PublishSubscribe

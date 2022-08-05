@@ -14,29 +14,10 @@ function Clamp(i, min, max)
     return i;
 }
 
-DOMReady(async () => {
-
-    window.PS.Subscribe(Channels.KEYUP, "renderer", (key) => {
-        console.log(key);
-        const ss = window.SlideState;
-        console.log(ss);
-        if (key === "ArrowLeft") {
-            ss.back();
-        }
-        else if (key == "ArrowRight") {
-            ss.forward();
-        }
-    });
-
-
-
-    const DEMO = "demo.kp";
-    const pathResolved = await window.loader.relativePath(DEMO)
-    console.log(pathResolved);
-    const astJson = await window.loader.load(pathResolved);
-    const ast = JSON.parse(astJson);
-    console.log(ast);
-    window.SlideState = {
+function initSlideState(ast, file)
+{
+    return {
+        filePath: file,
         activeSlideIndex: 0,
         activeSlide: ast.slides[0],
         slideCount: ast.slides.length,
@@ -61,8 +42,40 @@ DOMReady(async () => {
             this.render();
         }
     };
+}
 
+function docLoaded(ast, file)
+{
+   window.SlideState = initSlideState(ast, file);
+   window.SlideState.render(); 
+
+}
+
+DOMReady(async () => {
+
+    window.addEventListener("docLoaded", (e) => {
+        const { ast, file } = e.detail;
+        docLoaded(ast, file);
+    });
+    window.PS.Subscribe(Channels.KEYUP, "renderer", (key) => {
+        const ss = window.SlideState;
+        if (key === "ArrowLeft") {
+            ss.back();
+        }
+        else if (key == "ArrowRight") {
+            ss.forward();
+        }
+    });
+
+    const DEMO = "demo.kp";
+    const pathResolved = await window.loader.relativePath(DEMO);
+    console.log(pathResolved);
+    const ast = await window.loader.load(pathResolved);
+    console.log(ast);
+
+    initSlideState(ast, pathResolved);
     window.SlideState.render();
+    // initCanvas();
     window.addEventListener("resize", () =>  window.SlideState.render());
 
 });

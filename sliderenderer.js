@@ -61,7 +61,7 @@ function drawText(content) {
     }
     else if (alignH === "right")
     {
-        x = tm.width + (canvas.width - tm.width);
+        x = tm.width + (canvas.width - tm.width) - padX;
     }
     else {
         x = padX;
