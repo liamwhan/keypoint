@@ -55,14 +55,27 @@ function drawText(content) {
 
     // TODO(liam): Calculate if the text will overflow the canvas and wrap
 
+    if (alignH === "center")
+    {
+        x = cx;
+    }
+    else if (alignH === "right")
+    {
+        x = tm.width + (canvas.width - tm.width);
+    }
+    else {
+        x = padX;
+    }
 
     if (alignV === "center") {
         y = cy + (th / 2);
-        x = cx; // Replace with alignment-obeying value;
+    }
+    else if (alignV === "bottom")
+    {
+        y = canvas.height - padY;
     }
     else {
-        y = padY;
-        x = padX;
+        y = padY + tm.actualBoundingBoxAscent;
     }
 
     ctx.fillText(text, x, y);

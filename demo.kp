@@ -3,7 +3,7 @@
 This is a test
 \
 # background=#7FB285
-[align=left valign=center font="Arial" font-size=60px font-color=#FFFFFF]
+[align=left valign=top font="Arial" font-size=60px font-color=#FFFFFF]
 This is another slide
 \
 # background=#CC3363
