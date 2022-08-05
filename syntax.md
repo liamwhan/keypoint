@@ -16,7 +16,7 @@ e.g. `# background=#FFFFFF` and are terminated by a new line
 ### Config Properties
 | Property | Allowed values |
 |----------|----------------|
-| `align`  | `left`,`right`,`center`|
+| `align`  | `left`,`right`,`center`,`start`,`end`|
 | `valign` | `top`,`bottom`,`center`|
 | `font`   | The font family name (Note: must be enclosed in double quotes `"`) |
 | `font-size` | The font size in pixels e.g. 14px  |

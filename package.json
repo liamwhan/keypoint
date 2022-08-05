@@ -8,6 +8,7 @@
   "name": "keypoint",
   "version": "0.0.1",
   "main": "index.js",
+  "types": "types/keypoint.d.ts",
   "scripts": {
     "start": "npx electron ."
   },

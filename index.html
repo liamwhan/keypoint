@@ -4,16 +4,28 @@
 <head>
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-  <title>Hello World!</title>
-</head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self';">
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Keypoint</title>
+  <style>
+    html, body {
+      min-width: 100vw;
+      min-height: 100vh;
+      margin: 0px;
+      padding: 0px;
+      overflow: hidden;
+    }
+    
+    canvas#cnv {
+      width: 100vw;
+      height: 100vh;
 
+    }
+  </style>
+</head>
 <body>
-  <h1>Hello World!</h1>
-  We are using Node.js <span id="node-version"></span>,
-  Chromium <span id="chrome-version"></span>,
-  and Electron <span id="electron-version"></span>.
+  <canvas id="cnv"></canvas>
 </body>
+<script src="./sliderenderer.js"></script>
 <script src="./renderer.js"></script>
 </html>

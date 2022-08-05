@@ -1,5 +1,5 @@
-# background=#FFFFFFF
-[align=center valign=center font="Poppins" font-size=14px offset=t10,l-10]
+# background=#FF0000
+[align=center valign=center font="Poppins" font-size=60px font-color=#000000 offset=t10,l-10]
 This is a test
 
 \
