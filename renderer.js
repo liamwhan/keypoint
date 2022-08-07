@@ -9,8 +9,8 @@ function DOMReady(fn) {
 
 function Clamp(i, min, max)
 {
-    if (i < min) return min;
-    if (i > max) return max;
+    if (i <= min) return min;
+    if (i >= max) return max;
     return i;
 }
 
@@ -51,21 +51,32 @@ function docLoaded(ast, file)
 
 }
 
-DOMReady(async () => {
-
-    window.addEventListener("docLoaded", (e) => {
-        const { ast, file } = e.detail;
-        docLoaded(ast, file);
-    });
-    window.PS.Subscribe(Channels.KEYUP, "renderer", (key) => {
-        const ss = window.SlideState;
+function keyUpHandler(key) {
+    const ss = window.SlideState;
         if (key === "ArrowLeft") {
             ss.back();
         }
         else if (key == "ArrowRight") {
             ss.forward();
         }
+}
+
+function keyDownHandler(key, KeyState)
+{
+    if (KeyState.CtrlDown && key === "r") 
+    {
+        window.location.reload();
+    }
+}
+
+DOMReady(async () => {
+
+    window.addEventListener("docLoaded", (e) => {
+        const { ast, file } = e.detail;
+        docLoaded(ast, file);
     });
+    window.PS.Subscribe(Channels.KEYUP, "renderer", keyUpHandler);
+    window.PS.Subscribe(Channels.KEYDOWN, "renderer", keyDownHandler);
 
     const DEMO = "demo.kp";
     const pathResolved = await window.loader.relativePath(DEMO);
@@ -73,9 +84,9 @@ DOMReady(async () => {
     const ast = await window.loader.load(pathResolved);
     console.log(ast);
 
-    initSlideState(ast, pathResolved);
+    window.SlideState = initSlideState(ast, pathResolved);
     window.SlideState.render();
-    // initCanvas();
+    initCanvas();
     window.addEventListener("resize", () =>  window.SlideState.render());
 
 });

@@ -63,7 +63,7 @@ const createWindow = () => {
         }
     ]);
     Menu.setApplicationMenu(menu);
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
     ipcMain.handle("relativePath", (event, fragment) => path.resolve(__dirname, fragment));
     ipcMain.handle("load", (event, file) => load(file));
     ipcMain.handle("fileOpen", (event) => openFile())

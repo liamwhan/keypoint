@@ -27,6 +27,8 @@ function getCtx() {
 }
 
 function clear(colour) {
+    colour = (colour.substring(0,1) !== "#") ? `#${colour}` : colour;
+    console.log("Fill colour = ", colour);
     const ctx = getCtx();
     ctx.fillStyle = colour;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -40,7 +42,7 @@ function drawText(content) {
     const font = props.font;
     const fontSize = props["font-size"];
     const fontSizePx = parseInt(fontSize.replace("px", ""));
-    const colour = props["font-color"];
+    const colour = "#" + props["font-color"];
     const alignH = props.align;
     const alignV = props.valign;
 

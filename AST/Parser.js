@@ -1,62 +1,56 @@
 
-
+function parseOffset(offsetString) {
+    const offset = {
+        top: 0,
+        left: 0
+    };
+    const s = offsetString.split(",");
+    for (const o of s) {
+        const e = o.substring(0, 1);
+        const k = e === "t" ? "top" : "left";
+        const v = parseInt(o.substring(1));
+        offset[k] = v;
+    }
+    return offset;
+}
 function parseConfigBlock(token) {
-    const config = {
+    
+    let properties = {
         align: "center",
         valign: "top",
         font: "Arial",
         "font-size": "12px",
-        "font-color": "#000000",
-        "offset": {
+        "font-color": "000000",
+        offset: {
             top: 0,
             left: 0
         }
     };
-    const userConfigProperties = token.value.split(" ");
-    const userConfig = {};
-    for (let c of userConfigProperties) {
-        const s = c.split("=");
-        if (s.length < 2) throw new SyntaxError("Slide configuration mismatched property pair");
-        if (s[0] !== "offset") {
-            userConfig[s[0]] = s[1].replaceAll("\"", "");
-        }
-        else {
-            const offsetSplit = s[1].split(",");
-            const offset = {
-                top: 0,
-                left: 0
-            }
-            for (let i = 0, len = offsetSplit.length; i < len; i++) {
-                const offsetTerm = offsetSplit[i];
-                const operand = offsetTerm.substring(0, 1);
-                const operandFull = operand === "t" ? "top" : "left";
-                const value = parseInt(offsetTerm.substring(1));
-                offset[operandFull] = value;
-            }
-            userConfig["offset"] = offset;
-        }
-    }
-    return {
+    const parsed = {
         type: "ConfigBlock",
-        properties: { ...config, ...userConfig }
+        properties
     };
+
+    if (token.properties.length < 2) return parsed;
+    for (let i = 0, len = token.properties.length; i < len; i += 2) {
+        const k = token.properties[i].value;
+        const v = (k === "offset") ? parseOffset(token.properties[i + 1].value) : token.properties[i + 1].value;
+        properties[k] = v;
+    }
+    return parsed;
 }
 function parseSlideProperties(token) {
-    const props = {
-        background: "#FFFFFF"
+    const slideProps = { background: "#FFFFFF" };
+    const userProps = {};
+
+    if (token.properties.length < 2) return slideProps;
+    for (let i = 0; i < token.properties.length; i += 2) {
+        const k = token.properties[i].value;
+        const v = token.properties[i + 1].value;
+        userProps[k] = v;
     }
-    if (token.value.length < 1) return props;
-    const userProps = token.value.split(" ");
-    const userProperties = {};
-    for (let p of userProps) {
-        const s = p.toLowerCase().split("=");
-        if (s.length < 2) throw new SyntaxError("SlideProperties mismatched key value pair")
-        userProperties[s[0]] = s[1];
-    }
-    return {
-        type: "SlideProperties",
-        ...{ ...props, ...userProperties }
-    };
+
+    return { ...slideProps, ...userProps };
 }
 
 function parseContentString(token) {
@@ -68,6 +62,22 @@ function parseContentString(token) {
     };
 }
 
+function defaultConfigBlock() {
+    return {
+        type: "ConfigBlock",
+        properties: {
+            align: "center",
+            valign: "center",
+            font: "Helvectica",
+            "font-color": "000000",
+            "font-size": "30px",
+            offset: {
+                top: 0,
+                left: 0
+            }
+        }
+    };
+}
 
 function parse(tokens) {
     let slideN = 0;
@@ -88,18 +98,27 @@ function parse(tokens) {
         return slide;
     }
 
+
+
     function seekContentConfig(contents) {
+        let config;
         // Seeks backwards in the AST from a content string at i 
         // to find it's nearest ConfigBlock
         for (let j = contents.length - 1; j >= 0; --j) {
             const node = contents[j];
             if (node.type !== "ConfigBlock") continue;
-            return node;
+            config = node;
         }
+
+        if (!config) {
+            config = defaultConfigBlock();
+        }
+
+        return config;
     }
 
     let slide = newSlide();
-    
+
     for (const token of tokens) {
         switch (token.type) {
             case "SlideProperties":
@@ -114,7 +133,7 @@ function parse(tokens) {
             case "ContentString":
                 const content = parseContentString(token);
                 const config = seekContentConfig(slide.contents);
-                content.properties = {...config.properties};
+                content.properties = { ...config.properties };
                 slide.contents.push(content);
                 break;
             case "EOL":
