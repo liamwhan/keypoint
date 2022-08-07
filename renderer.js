@@ -75,8 +75,8 @@ DOMReady(async () => {
         const { ast, file } = e.detail;
         docLoaded(ast, file);
     });
-    window.PS.Subscribe(Channels.KEYUP, "renderer", keyUpHandler);
-    window.PS.Subscribe(Channels.KEYDOWN, "renderer", keyDownHandler);
+    window.PS.Subscribe(Channel.KEYUP, "renderer", keyUpHandler);
+    window.PS.Subscribe(Channel.KEYDOWN, "renderer", keyDownHandler);
 
     const DEMO = "demo.kp";
     const pathResolved = await window.loader.relativePath(DEMO);

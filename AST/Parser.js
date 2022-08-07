@@ -1,4 +1,5 @@
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function parseOffset(offsetString) {
     const offset = {
         top: 0,
@@ -14,7 +15,6 @@ function parseOffset(offsetString) {
     return offset;
 }
 function parseConfigBlock(token) {
-    
     let properties = {
         align: "center",
         valign: "top",
@@ -30,8 +30,8 @@ function parseConfigBlock(token) {
         type: "ConfigBlock",
         properties
     };
-
-    if (token.properties.length < 2) return parsed;
+    if (token.properties.length < 2)
+        return parsed;
     for (let i = 0, len = token.properties.length; i < len; i += 2) {
         const k = token.properties[i].value;
         const v = (k === "offset") ? parseOffset(token.properties[i + 1].value) : token.properties[i + 1].value;
@@ -42,26 +42,24 @@ function parseConfigBlock(token) {
 function parseSlideProperties(token) {
     const slideProps = { background: "#FFFFFF" };
     const userProps = {};
-
-    if (token.properties.length < 2) return slideProps;
+    if (token.properties.length < 2)
+        return slideProps;
     for (let i = 0; i < token.properties.length; i += 2) {
         const k = token.properties[i].value;
         const v = token.properties[i + 1].value;
         userProps[k] = v;
     }
-
-    return { ...slideProps, ...userProps };
+    return Object.assign(Object.assign({}, slideProps), userProps);
 }
-
 function parseContentString(token) {
-    if (token.type != "ContentString") throw new Error("Parse Error: parseContentString called on token that is not a ContentString. Token Type: ", token.type);
+    if (token.type != "ContentString")
+        throw new Error("Parse Error: parseContentString called on token that is not a ContentString. Token Type: " + token.type);
     return {
         type: "Content",
         contentType: "string",
         value: token.value
     };
 }
-
 function defaultConfigBlock() {
     return {
         type: "ConfigBlock",
@@ -78,54 +76,43 @@ function defaultConfigBlock() {
         }
     };
 }
-
 function parse(tokens) {
     let slideN = 0;
     const ast = {
         type: "Document",
         slides: []
-    }
-
+    };
     function newSlide() {
-        slideN++;
         const slide = {
             type: "Slide",
-            id: slideN,
+            id: slideN++,
             properties: {},
             contents: []
         };
         ast.slides.push(slide);
         return slide;
     }
-
-
-
     function seekContentConfig(contents) {
         let config;
-        // Seeks backwards in the AST from a content string at i 
-        // to find it's nearest ConfigBlock
         for (let j = contents.length - 1; j >= 0; --j) {
             const node = contents[j];
-            if (node.type !== "ConfigBlock") continue;
+            if (node.type !== "ConfigBlock")
+                continue;
             config = node;
         }
-
         if (!config) {
             config = defaultConfigBlock();
         }
-
         return config;
     }
-
     let slide = newSlide();
-
     for (const token of tokens) {
         switch (token.type) {
             case "SlideProperties":
                 slide.properties = parseSlideProperties(token);
                 break;
             case "ConfigBlock":
-                slide.contents.push(parseConfigBlock(token))
+                slide.contents.push(parseConfigBlock(token));
                 break;
             case "PageBreak":
                 slide = newSlide();
@@ -133,16 +120,13 @@ function parse(tokens) {
             case "ContentString":
                 const content = parseContentString(token);
                 const config = seekContentConfig(slide.contents);
-                content.properties = { ...config.properties };
+                content.properties = Object.assign({}, config.properties);
                 slide.contents.push(content);
                 break;
             case "EOL":
-                // slide.contents.push({ type: "EOL" });
                 break;
-
         }
     }
     return ast;
 }
-
 module.exports = { parse };

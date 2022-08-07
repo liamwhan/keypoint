@@ -37,6 +37,7 @@ function clear(colour) {
 
 function drawText(content) {
     const ctx = getCtx();
+    ctx.d
     const props = content.properties;
     const text = content.value;
     const font = props.font;
