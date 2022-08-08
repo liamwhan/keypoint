@@ -207,6 +207,8 @@ const lexer = function (str: string) {
         switch(blockType.toLowerCase())
         {
             case "slide":
+            case "new_slide":
+            case "new.slide":
                 return slideProperties();
             case "style":
                 return styleBlock();

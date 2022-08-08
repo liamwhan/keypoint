@@ -102,14 +102,15 @@ export function parse(tokens: KPToken[]): DocumentNode {
 
 
 
-    function seekContentConfig(contents): StyleBlockNode {
+    function seekContentConfig(contents: KPNode[]): StyleBlockNode {
         let config: StyleBlockNode;
         // Seeks backwards in the AST from a content string at i 
         // to find it's nearest ConfigBlock
-        for (let j = contents.length - 1; j >= 0; --j) {
+        for (let j = contents.length - 1; j >= 0; j--) {
             const node = contents[j];
             if (node.type !== "StyleBlock") continue;
-            config = node;
+            config = node as StyleBlockNode;
+            break;
         }
 
         if (!config) {
@@ -133,6 +134,7 @@ export function parse(tokens: KPToken[]): DocumentNode {
                 break;
             case "ContentString":
                 const content = parseContentString(token as ContentStringToken);
+                console.log("Seeking for parent Style Block", slide.contents);
                 const config = seekContentConfig(slide.contents);
                 content.properties = { ...config.properties };
                 slide.contents.push(content);

@@ -1,11 +1,26 @@
-[slide background=3083DC]
-[style align=center valign=center font="Poppins SemiBold" font-size=60px font-color=000000 offset=t10,l-10]
-This is a test
+[slide]
+This is the simplest slide in existance. These are the default values.
 
-[slide background=7FB285]
-[style align=left valign=top font="Arial" font-size=60px font-color=FFFFFF]
-This is another slide
+
+[slide background=3083DC]
+[style align=center valign=center font="Segoe UI" font-size=60px font-color=000000 offset=t10,l-10]
+This is a test
+And this should be under the test
+
+
+
+
+[style align=left valign=bottom font="Comic Sans" font-size=12px font-color=3d3d3d offset=t10,l-10]
+here is more text
+
+
+
+
+
+
+
 
 [slide background=CC3363]
 [style align=right valign=bottom font="Helvetica" font-size=60px font-color=FFFFFF]
 This is the last slide
+
