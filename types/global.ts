@@ -95,7 +95,7 @@ interface TokenLocation {
     line: number;
     column: number;
 }
-type KPTokenType = "SlideProperties"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"PageBreak"|"EOL"|"EOF";
+type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"PageBreak"|"EOL"|"EOF";
 interface KPToken {
     type: KPTokenType;
     start: TokenLocation;
@@ -120,10 +120,23 @@ interface ConfigKeyValueToken extends KPToken
     value: string;
 }
 
-interface ConfigBlockToken extends KPToken
+
+
+interface BlockToken extends KPToken
+{
+    type:"ConfigBlock"|"SlideProperties"|"StyleBlock";
+    properties: ConfigKeyValueToken[];
+}
+
+// TODO(liam): Remove;
+interface ConfigBlockToken extends BlockToken
 {
     type: "ConfigBlock";
-    properties: ConfigKeyValueToken[];
+}
+
+interface StyleBlockToken extends BlockToken
+{
+    type: "StyleBlock";
 }
 
 interface EOLToken extends KPToken

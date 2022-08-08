@@ -1,11 +1,11 @@
-[newslide background=3083DC]
-[style=block align=center valign=center font="Poppins SemiBold" font-size=60px font-color=000000 offset=t10,l-10]
+[slide background=3083DC]
+[style align=center valign=center font="Poppins SemiBold" font-size=60px font-color=000000 offset=t10,l-10]
 This is a test
 
-[newslide background=7FB285]
-[align=left valign=top font="Arial" font-size=60px font-color=FFFFFF]
+[slide background=7FB285]
+[style align=left valign=top font="Arial" font-size=60px font-color=FFFFFF]
 This is another slide
 
-[newslide background=CC3363]
-[align=right valign=bottom font="Helvetica" font-size=60px font-color=FFFFFF]
+[slide background=CC3363]
+[style align=right valign=bottom font="Helvetica" font-size=60px font-color=FFFFFF]
 This is the last slide

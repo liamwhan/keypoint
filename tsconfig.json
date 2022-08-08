@@ -12,6 +12,7 @@
       "experimentalDecorators": false,
       "allowJs": true,
       "typeRoots": ["types", "./node_modules/@types"],
+      "inlineSourceMap": true,
     },
     "typeAcquisition": {
       "enable": true,

@@ -192,17 +192,42 @@ const lexer = function (str: string) {
         }
     }
 
-
-    function configBlock(): ConfigBlockToken {
+    function block(): BlockToken|null {
         if (char !== BLOCK_OPEN) return null;
         const start = position();
-        const block: ConfigBlockToken = {
-            type: "ConfigBlock",
+        let blockType = "";
+        next();
+        // 1. Discard leading ws after open brace and Determine the block type by first word e.g. [slide background=FFFFFF] yields slide as block type
+        while(IsWhitespace(char)) next();
+        while(IsAlpha(char))
+        {
+            blockType += char;
+            next();
+        }
+        switch(blockType.toLowerCase())
+        {
+            case "slide":
+                return slideProperties();
+            case "style":
+                return styleBlock();
+            default:
+                return null;
+        }
+
+    }
+
+    function styleBlock(): StyleBlockToken|null {
+        const start = position();
+        const block: StyleBlockToken = {
+            type: "StyleBlock",
             properties: [],
             start,
             end: {i: 0, line: 0, column: 0}
         };
-        next();
+
+        // The block() routine iterates until it gets to the first whitespace character (not including any ws between open brace and first word)
+        // So the cursor is guaranteed to be on whitespace if this gets called
+        while (IsWhitespace(char)) next();
         while (char !== BLOCK_CLOSE) {
             if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
             const configToken = configValue() || whitespace() || configKey();
@@ -237,22 +262,8 @@ const lexer = function (str: string) {
         };
     }
 
-    function pageBreak(): PageBreakToken {
-        if (char !== "\\") return null;
-        let start: TokenLocation, end: TokenLocation;
-        start = end = position();
-        next();
-        return {
-            type: "PageBreak",
-            start,
-            end
-        }
-    }
-
     function slideProperties(): SlidePropertiesToken {
-        if (char !== "#" || column !== 1) return null;
         next();
-        // Discard leading whitespace after #
         while (IsWhitespace(char)) next();
         const start = position();
         const properties: ConfigKeyValueToken[] = [];
@@ -283,10 +294,8 @@ const lexer = function (str: string) {
     for (; i <= str.length;) {
         const token: KPToken = whitespace() ||
             endOfLine() ||
-            slideProperties() ||
             contentString() ||
-            configBlock() ||
-            pageBreak() ||
+            block() ||
             endOfFile();
 
         if (token) {
