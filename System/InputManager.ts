@@ -1,4 +1,4 @@
-const KeyState = {
+const KeyState: KeyState = {
     CtrlDown: false,
     AltDown: false,
     ShiftDown: false,

@@ -20,8 +20,12 @@
     "files": [
       "System/PubSub.ts",
       "System/InputManager.ts",
+      "types/global.ts",
       "AST/Lexer.ts",
-      "AST/Parser.ts"
+      "AST/Parser.ts",
+      "SlideRenderer.ts",
+      "index.ts",
+      "renderer.ts"
       
     ],
     "exclude": [

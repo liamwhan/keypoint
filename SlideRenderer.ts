@@ -1,11 +1,20 @@
-let canvas, dpr = 1.0, vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight, cx, cy;
+let canvas:HTMLCanvasElement, 
+    dpr:number  = 1.0, 
+    vw:number   = document.documentElement.clientWidth,
+    vh:number   = document.documentElement.clientHeight,
+    cx:number, 
+    cy:number;
+
 const padY = 20;
 const padX = 20;
-function initCanvas() {
-    canvas = document.querySelector("#cnv");
-    if (canvas === null) {
+
+function initCanvas(): void
+{
+    canvas = document.querySelector("#cnv") as HTMLCanvasElement;
+    if (canvas === null)
+    {
         console.error("Canvas element not found");
-        return;
+        return;   
     }
     dpr = (window.devicePixelRatio === 1) ? 2 : window.devicePixelRatio;
     vw = document.documentElement.clientWidth;
@@ -17,19 +26,25 @@ function initCanvas() {
     cx = (canvas.width / 2);
     cy = (canvas.height / 2);
 }
-function dpiScale(n) {
+
+function dpiScale(n: number): number {
     return n * dpr;
 }
-function getCtx() {
-    return canvas.getContext("2d");
+
+
+function getCtx(): CanvasRenderingContext2D {
+    return canvas.getContext("2d") as CanvasRenderingContext2D;
 }
-function clear(colour) {
-    colour = (colour.substring(0, 1) !== "#") ? `#${colour}` : colour;
+
+function clear(colour: string): void {
+    colour = (colour.substring(0,1) !== "#") ? `#${colour}` : colour;
     const ctx = getCtx();
     ctx.fillStyle = colour;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 }
-function drawText(content) {
+
+function drawText(content: ContentNode): void {
     const ctx = getCtx();
     const props = content.properties;
     const text = content.value;
@@ -39,41 +54,54 @@ function drawText(content) {
     const colour = "#" + props["font-color"];
     const alignH = props.align;
     const alignV = props.valign;
+
     ctx.font = `${fontSize} ${font}`;
     ctx.fillStyle = colour;
     ctx.textBaseline = "bottom";
     ctx.textAlign = alignH;
+
     const tm = ctx.measureText(text);
     const th = tm.actualBoundingBoxAscent;
-    let x, y;
-    if (alignH === "center") {
+    let x: number, y: number;
+
+    // TODO(liam): Calculate if the text will overflow the canvas and wrap
+
+    if (alignH === "center")
+    {
         x = cx;
     }
-    else if (alignH === "right") {
+    else if (alignH === "right")
+    {
         x = tm.width + (canvas.width - tm.width) - padX;
     }
     else {
         x = padX;
     }
+
     if (alignV === "center") {
         y = cy + (th / 2);
     }
-    else if (alignV === "bottom") {
+    else if (alignV === "bottom")
+    {
         y = canvas.height - padY;
     }
     else {
         y = padY + tm.actualBoundingBoxAscent;
     }
+
     ctx.fillText(text, x, y);
+
 }
-function renderSlide(slide) {
+
+function renderSlide(slide: SlideNode): void {
     initCanvas();
     clear(slide.properties.background);
+
     for (let c of slide.contents) {
         if (c.type === "Content") {
-            switch (c.contentType) {
+            switch ((c as ContentNode).contentType) {
                 case "string":
-                    drawText(c);
+                    drawText(c as ContentNode);
                     break;
                 default:
                     break;
@@ -81,3 +109,5 @@ function renderSlide(slide) {
         }
     }
 }
+
+

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lexer = void 0;
-;
 const BLOCK_OPEN = "[";
 const BLOCK_CLOSE = "]";
 function IsAlpha(char) {

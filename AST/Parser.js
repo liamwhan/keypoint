@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parse = void 0;
 function parseOffset(offsetString) {
     const offset = {
         top: 0,
@@ -129,4 +130,5 @@ function parse(tokens) {
     }
     return ast;
 }
+exports.parse = parse;
 module.exports = { parse };

@@ -1,54 +1,3 @@
-export interface TokenLocation {
-    i: number;
-    line: number;
-    column: number;
-}
-export type TokenType = "SlideProperties"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"PageBreak"|"EOL"|"EOF";
-export interface TokenBase {
-    type: TokenType;
-    start: TokenLocation;
-    end:TokenLocation;
-}
-
-export interface TokenSlideProperties extends TokenBase
-{
-    type: "SlideProperties";
-    properties: TokenConfigKeyValue[];
-}
-
-export interface TokenContentString extends TokenBase
-{
-    type: "ContentString";
-    value: string;
-}
-
-export interface TokenConfigKeyValue extends TokenBase
-{
-    type: "ConfigKey"|"ConfigValue";
-    value: string;
-}
-
-export interface TokenConfigBlock extends TokenBase
-{
-    type: "ConfigBlock";
-    properties: TokenConfigKeyValue[];
-};
-
-export interface TokenEOL extends TokenBase
-{
-    type: "EOL";
-}
-
-export interface TokenEOF extends TokenBase
-{
-    type: "EOF";
-}
-
-export interface TokenPageBreak extends TokenBase
-{
-    type: "PageBreak";
-}
-
 const BLOCK_OPEN:string = "[";
 const BLOCK_CLOSE:string = "]";
 
@@ -102,7 +51,7 @@ const lexer = function (str: string) {
         return { i, line, column };
     }
 
-    function endOfLine(): TokenEOL {
+    function endOfLine(): EOLToken {
         log("Checking for endOfLine char: ", char, "IsLineEnding", IsLineEnding(char));
         if (!IsLineEnding(char)) return null;
         log("CRLF detected i", i, "char: ", char);
@@ -130,7 +79,7 @@ const lexer = function (str: string) {
         return null;
     }
 
-    function endOfFile(): TokenEOF|null {
+    function endOfFile(): EOFToken|null {
         if (char === undefined) {
             next();
             const start = position();
@@ -145,7 +94,7 @@ const lexer = function (str: string) {
         return null;
     }
 
-    function configKey(): TokenConfigKeyValue {
+    function configKey(): ConfigKeyValueToken {
         let value = ""
         const start = position();
         while (char !== "=") {
@@ -163,7 +112,7 @@ const lexer = function (str: string) {
 
     }
 
-    function configValue(): TokenConfigKeyValue {
+    function configValue(): ConfigKeyValueToken {
         if (char !== "=") return null;
         let value = "";
         let quoteOpen = false;
@@ -200,7 +149,7 @@ const lexer = function (str: string) {
             }
         }
         
-        function configValueSlide(): TokenConfigKeyValue {
+        function configValueSlide(): ConfigKeyValueToken {
             if (char !== "=") return null;
             let value = "";
             let quoteOpen = false;
@@ -244,10 +193,10 @@ const lexer = function (str: string) {
     }
 
 
-    function configBlock(): TokenConfigBlock {
+    function configBlock(): ConfigBlockToken {
         if (char !== BLOCK_OPEN) return null;
         const start = position();
-        const block: TokenConfigBlock = {
+        const block: ConfigBlockToken = {
             type: "ConfigBlock",
             properties: [],
             start,
@@ -270,7 +219,7 @@ const lexer = function (str: string) {
         return block;
     }
 
-    function contentString(): TokenContentString {
+    function contentString(): ContentStringToken {
         if (!IsAlpha(char)) return null;
         let value = "";
         const start = position();
@@ -288,7 +237,7 @@ const lexer = function (str: string) {
         };
     }
 
-    function pageBreak(): TokenPageBreak {
+    function pageBreak(): PageBreakToken {
         if (char !== "\\") return null;
         let start: TokenLocation, end: TokenLocation;
         start = end = position();
@@ -300,13 +249,13 @@ const lexer = function (str: string) {
         }
     }
 
-    function slideProperties(): TokenSlideProperties {
+    function slideProperties(): SlidePropertiesToken {
         if (char !== "#" || column !== 1) return null;
         next();
         // Discard leading whitespace after #
         while (IsWhitespace(char)) next();
         const start = position();
-        const properties: TokenConfigKeyValue[] = [];
+        const properties: ConfigKeyValueToken[] = [];
         
 
         while (!IsLineEnding(char) && !IsEOF(char)) {
@@ -330,9 +279,9 @@ const lexer = function (str: string) {
             end
         };
     }
-    const tokens: TokenBase[] = [];
+    const tokens: KPToken[] = [];
     for (; i <= str.length;) {
-        const token: TokenBase = whitespace() ||
+        const token: KPToken = whitespace() ||
             endOfLine() ||
             slideProperties() ||
             contentString() ||

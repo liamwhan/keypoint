@@ -1,59 +1,3 @@
-import { TokenBase, TokenConfigBlock, TokenContentString, TokenSlideProperties } from "./Lexer";
-export type NodeType = "Document"|"Slide"|"SlideProperties"|"ConfigBlock"|"Content";
-
-
-export interface Node {
-    type: NodeType;
-}
-
-export interface KPDocNode extends Node {
-    type: "Document",
-    slides: SlideNode[];
-}
-
-export interface SlideNode extends Node {
-    type: "Slide";
-    id: number;
-    properties?: SlideProperties;
-    contents: Node[];
-
-}
-export interface ConfigBlockNode extends Node
-{
-    type: "ConfigBlock";
-    properties: ConfigBlockProperties;
-}
-export interface ContentNode extends Node
-{
-    type: "Content";
-    contentType: "string"|"image";
-    value: string;
-    properties?: ConfigBlockProperties;
-
-}
-
-export type Align = "left"|"right"|"center";
-export type VerticalAlign = "top"|"center"|"bottom";
-
-export interface ConfigBlockProperties
-{
-    align: Align;
-    valign: VerticalAlign;
-    font: string;
-    "font-size": string;
-    "font-color": string;
-    offset: Offset;
-}
-
-export interface SlideProperties
-{
-    background?: string;
-}
-
-export interface Offset {
-    top: number;
-    left: number;
-}
 
 
 function parseOffset(offsetString: string): Offset {
@@ -72,7 +16,7 @@ function parseOffset(offsetString: string): Offset {
 }
 
 
-function parseConfigBlock(token: TokenConfigBlock) : ConfigBlockNode {
+function parseConfigBlock(token: ConfigBlockToken) : ConfigBlockNode {
     
     let properties: ConfigBlockProperties = {
         align: "center",
@@ -98,7 +42,7 @@ function parseConfigBlock(token: TokenConfigBlock) : ConfigBlockNode {
     }
     return parsed;
 }
-function parseSlideProperties(token: TokenSlideProperties): SlideProperties {
+function parseSlideProperties(token: SlidePropertiesToken): SlideProperties {
     const slideProps: SlideProperties = { background: "#FFFFFF" };
     const userProps: SlideProperties = {};
 
@@ -112,7 +56,7 @@ function parseSlideProperties(token: TokenSlideProperties): SlideProperties {
     return { ...slideProps, ...userProps };
 }
 
-function parseContentString(token: TokenContentString): ContentNode {
+function parseContentString(token: ContentStringToken): ContentNode {
     if (token.type != "ContentString") throw new Error("Parse Error: parseContentString called on token that is not a ContentString. Token Type: " + token.type);
     return {
         type: "Content",
@@ -138,9 +82,9 @@ function defaultConfigBlock(): ConfigBlockNode {
     };
 }
 
-function parse(tokens: TokenBase[]): KPDocNode {
+export function parse(tokens: KPToken[]): DocumentNode {
     let slideN = 0;
-    const ast: KPDocNode = {
+    const ast: DocumentNode = {
         type: "Document",
         slides: []
     }
@@ -180,16 +124,16 @@ function parse(tokens: TokenBase[]): KPDocNode {
     for (const token of tokens) {
         switch (token.type) {
             case "SlideProperties":
-                slide.properties = parseSlideProperties(token as TokenSlideProperties);
+                slide.properties = parseSlideProperties(token as SlidePropertiesToken);
                 break;
             case "ConfigBlock":
-                slide.contents.push(parseConfigBlock(token as TokenConfigBlock))
+                slide.contents.push(parseConfigBlock(token as ConfigBlockToken))
                 break;
             case "PageBreak":
                 slide = newSlide();
                 break;
             case "ContentString":
-                const content = parseContentString(token as TokenContentString);
+                const content = parseContentString(token as ContentStringToken);
                 const config = seekContentConfig(slide.contents);
                 content.properties = { ...config.properties };
                 slide.contents.push(content);
