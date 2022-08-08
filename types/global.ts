@@ -1,6 +1,6 @@
 
 //#region AST Nodes
-type KPNodeType = "Document"|"Slide"|"SlideProperties"|"ConfigBlock"|"Content";
+type KPNodeType = "Document"|"Slide"|"SlideProperties"|"StyleBlock"|"ConfigBlock"|"Content";
 
 interface KPNode {
     type: KPNodeType;
@@ -21,6 +21,11 @@ interface SlideNode extends KPNode {
 interface ConfigBlockNode extends KPNode
 {
     type: "ConfigBlock";
+    properties: ConfigBlockProperties;
+}
+interface StyleBlockNode extends KPNode
+{
+    type: "StyleBlock";
     properties: ConfigBlockProperties;
 }
 interface ContentNode extends KPNode

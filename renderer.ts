@@ -88,7 +88,7 @@ DOMReady(async () => {
     window.PS.Subscribe(Channel.KEYUP, "renderer", keyUpHandler);
     window.PS.Subscribe(Channel.KEYDOWN, "renderer", keyDownHandler);
 
-    const DEMO = "demo.kp";
+    const DEMO = "demo2.kp";
     const pathResolved = await window.loader.relativePath(DEMO);
     console.log(pathResolved);
     const ast = await window.loader.load(pathResolved);

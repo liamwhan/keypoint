@@ -16,7 +16,7 @@ function parseOffset(offsetString: string): Offset {
 }
 
 
-function parseConfigBlock(token: ConfigBlockToken) : ConfigBlockNode {
+function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
     
     let properties: ConfigBlockProperties = {
         align: "center",
@@ -29,8 +29,8 @@ function parseConfigBlock(token: ConfigBlockToken) : ConfigBlockNode {
             left: 0
         }
     };
-    const parsed: ConfigBlockNode = {
-        type: "ConfigBlock",
+    const parsed: StyleBlockNode = {
+        type: "StyleBlock",
         properties
     };
 
@@ -65,9 +65,9 @@ function parseContentString(token: ContentStringToken): ContentNode {
     };
 }
 
-function defaultConfigBlock(): ConfigBlockNode {
+function defaultStyleBlock(): StyleBlockNode {
     return {
-        type: "ConfigBlock",
+        type: "StyleBlock",
         properties: {
             align: "center",
             valign: "center",
@@ -102,35 +102,34 @@ export function parse(tokens: KPToken[]): DocumentNode {
 
 
 
-    function seekContentConfig(contents): ConfigBlockNode {
-        let config: ConfigBlockNode;
+    function seekContentConfig(contents): StyleBlockNode {
+        let config: StyleBlockNode;
         // Seeks backwards in the AST from a content string at i 
         // to find it's nearest ConfigBlock
         for (let j = contents.length - 1; j >= 0; --j) {
             const node = contents[j];
-            if (node.type !== "ConfigBlock") continue;
+            if (node.type !== "StyleBlock") continue;
             config = node;
         }
 
         if (!config) {
-            config = defaultConfigBlock();
+            config = defaultStyleBlock();
         }
 
         return config;
     }
 
-    let slide = newSlide();
+    let slide: SlideNode;
 
     for (const token of tokens) {
+        console.log("Parsing token type:", token.type);
         switch (token.type) {
             case "SlideProperties":
+                slide = newSlide();
                 slide.properties = parseSlideProperties(token as SlidePropertiesToken);
                 break;
-            case "ConfigBlock":
-                slide.contents.push(parseConfigBlock(token as ConfigBlockToken))
-                break;
-            case "PageBreak":
-                slide = newSlide();
+            case "StyleBlock":
+                slide.contents.push(parseStyleBlock(token as StyleBlockToken))
                 break;
             case "ContentString":
                 const content = parseContentString(token as ContentStringToken);
