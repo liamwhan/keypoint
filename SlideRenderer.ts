@@ -248,10 +248,19 @@ function drawText(content: ContentNode): void {
 
 }
 
+function stopAll()
+{
+    for(const v of preloadedVideos)
+    {
+        const {video} = v;
+        video.pause();
+    }
+}
+
 function renderSlide(slide: SlideNode): void {
+    stopAll();
     initCanvas();
     clear(slide.properties.background);
-
     for (let c of slide.contents) {
         if (c.type === "Content") {
             switch ((c as ContentNode).contentType) {
