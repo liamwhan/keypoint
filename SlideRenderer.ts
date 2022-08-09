@@ -8,6 +8,25 @@ let canvas:HTMLCanvasElement,
 const padY = 20;
 const padX = 20;
 
+
+
+let renderState: SlideRenderState = {
+    currentLine: 0,
+    currentFont: "Arial",
+    currentFontSize: "12px",
+    lastTextMetrics: undefined
+}
+
+function clearRenderState(): SlideRenderState
+{
+    return renderState = {
+        currentLine: 0,
+        currentFont: "Arial",
+        currentFontSize: "12px",
+        lastTextMetrics: undefined
+    }
+}
+
 function initCanvas(): void
 {
     canvas = document.querySelector("#cnv") as HTMLCanvasElement;
@@ -37,6 +56,7 @@ function getCtx(): CanvasRenderingContext2D {
 }
 
 function clear(colour: string): void {
+    clearRenderState();
     colour = (colour.substring(0,1) !== "#") ? `#${colour}` : colour;
     const ctx = getCtx();
     ctx.fillStyle = colour;
@@ -44,16 +64,80 @@ function clear(colour: string): void {
 
 }
 
+// TODO(liam): This should take into account the font that was rendered and therefore should use TextMetrics
+function calculateLineOffset(fontSizePx: number | string): number
+{
+    if (typeof(fontSizePx) === "string") fontSizePx = parseInt(fontSizePx.replace("px", ""));
+    return renderState.currentLine * fontSizePx;
+}
+
+function drawImage(content: ContentNode): void {
+    const ctx = getCtx();
+    const props = content.properties;
+    const imagePath = props.path;
+    const alignH = props.align;
+    const alignV = props.valign;
+    const offsetY = props.offset.top;
+    const offsetX = props.offset.left;
+    const dwp = parseFloat(props.width.replace("%", "")) / 100;
+    let dhp = parseFloat(props.height.replace("%", "")) / 100;
+    if (dhp === 1 && dwp !== 1) dhp = dwp; // Constrain Aspect Ratio;
+    
+    let x: number, y: number;
+
+    // Load image into DOM first
+    const img = document.createElement("img");
+    img.setAttribute("src", imagePath);
+    img.addEventListener("load", (e) => {
+        const { naturalWidth: nw, naturalHeight: nh} = img;
+        const dw = nw * dwp;
+        const dh = nh * dhp;
+        
+        if (alignH === "center")
+        {
+            x = cx - (dw / 2) + offsetX;
+        }
+        else if (alignH === "left")
+        {
+            x = padX + offsetX;
+        }
+        else 
+        {
+            x = canvas.width - dw + offsetX;
+        }
+
+        if (alignV === "center")
+        {
+            y = cy - (dh / 2) + offsetY + calculateLineOffset(renderState.currentFontSize);
+        }
+        else if (alignV === "top")
+        {
+            y = padY + offsetY + calculateLineOffset(renderState.currentFontSize);
+        }
+        else
+        {
+            y = canvas.height - dh - padY + offsetY + calculateLineOffset(renderState.currentFontSize);
+        }
+
+        ctx.drawImage(img, x, y, dw, dh);
+
+    })
+
+
+}
+
 function drawText(content: ContentNode): void {
     const ctx = getCtx();
     const props = content.properties;
     const text = content.value;
-    const font = props.font;
-    const fontSize = props["font-size"];
+    const font = renderState.currentFont = props.font;
+    const fontSize = renderState.currentFontSize = props["font-size"];
     const fontSizePx = parseInt(fontSize.replace("px", ""));
     const colour = "#" + props["font-color"];
     const alignH = props.align;
     const alignV = props.valign;
+    const offsetY = props.offset.top;
+    const offsetX = props.offset.left;
 
     ctx.font = `${fontSize} ${font}`;
     ctx.fillStyle = colour;
@@ -68,28 +152,29 @@ function drawText(content: ContentNode): void {
 
     if (alignH === "center")
     {
-        x = cx;
+        x = cx + offsetX;
     }
     else if (alignH === "right")
     {
-        x = tm.width + (canvas.width - tm.width) - padX;
+        x = tm.width + (canvas.width - tm.width) - padX + offsetX;
     }
     else {
-        x = padX;
+        x = padX + offsetX;
     }
 
     if (alignV === "center") {
-        y = cy + (th / 2);
+        y = cy + (th / 2) + calculateLineOffset(fontSizePx) + offsetY;
     }
     else if (alignV === "bottom")
     {
-        y = canvas.height - padY;
+        y = canvas.height - padY + calculateLineOffset(fontSizePx) + offsetY;
     }
     else {
-        y = padY + tm.actualBoundingBoxAscent;
+        y = padY + tm.actualBoundingBoxAscent + calculateLineOffset(fontSizePx) + offsetY;
     }
 
     ctx.fillText(text, x, y);
+    renderState.currentLine++;
 
 }
 
@@ -102,6 +187,9 @@ function renderSlide(slide: SlideNode): void {
             switch ((c as ContentNode).contentType) {
                 case "string":
                     drawText(c as ContentNode);
+                    break;
+                case "image": 
+                    drawImage(c as ContentNode);
                     break;
                 default:
                     break;

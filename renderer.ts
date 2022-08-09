@@ -5,7 +5,11 @@ interface SlideState {
     activeSlide: SlideNode;
 }
 
-function DOMReady(fn) {
+type DOMReadyCallbackSync = () => void;
+type DOMReadyCallbackAsync = () => Promise<void>;
+type DOMReadyCallback = DOMReadyCallbackSync & DOMReadyCallbackAsync;
+
+function DOMReady(fn: DOMReadyCallback) {
     if (document.readyState === "complete" || document.readyState === "interactive") {
         setTimeout(fn, 1);
         return;
@@ -13,17 +17,14 @@ function DOMReady(fn) {
     document.addEventListener("DOMContentLoaded", fn);
 }
 
-
-function Clamp(i, min, max)
+function Clamp(i: number, min: number, max: number): number
 {
     if (i <= min) return min;
     if (i >= max) return max;
     return i;
 }
 
-
-
-function initSlideState(ast, file)
+function initSlideState(ast: DocumentNode, file: string)
 {
     return {
         filePath: file,
@@ -53,7 +54,7 @@ function initSlideState(ast, file)
     };
 }
 
-function docLoaded(ast: DocumentNode, file: string)
+function docLoaded(ast: DocumentNode, file: string): void
 {
     initCanvas();
     window.SlideState = initSlideState(ast, file);
@@ -61,7 +62,7 @@ function docLoaded(ast: DocumentNode, file: string)
 
 }
 
-function keyUpHandler(key: string) {
+function keyUpHandler(key: string): void {
     const ss = window.SlideState;
         if (key === "ArrowLeft") {
             ss.back();
@@ -71,7 +72,7 @@ function keyUpHandler(key: string) {
         }
 }
 
-function keyDownHandler(key: string, KeyState: KeyState)
+function keyDownHandler(key: string, KeyState: KeyState) : void
 {
     if (KeyState.CtrlDown && key === "r") 
     {

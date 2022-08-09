@@ -9,7 +9,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "start": "npx electron .",
+    "start": "npx electron --log-level=3 .",
     "watch": "tsc -w"
   },
   "repository": {

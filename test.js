@@ -7,6 +7,9 @@ const slide = fs.readFileSync(DEMO, {encoding: "utf-8"});
 const tokens = lexer(slide);
 for(let token of tokens)
 {
-    console.log(token);
+    if (token.type === "ImageBlock"){
+
+        console.log(token);
+    }
 }
 

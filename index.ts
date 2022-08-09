@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, OpenDialogSyncOptions } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, Menu, OpenDialogSyncOptions, protocol } from "electron";
 import { lexer } from "./AST/Lexer";
 import { parse } from "./AST/Parser";
 import path from "path";
@@ -70,6 +70,15 @@ const createWindow = ():void => {
     win.loadFile("index.html");
 };
 
+protocol.registerSchemesAsPrivileged([
+    { scheme: "keypoint", privileges: { bypassCSP: true, standard: true }}
+]);
+
 app.whenReady().then(() => {
+    protocol.registerFileProtocol("keypoint", (request, callback) => {
+        const url = request.url.substring(7);
+        callback({path: path.normalize(`${__dirname}/${url}`)});
+    });
+    
     createWindow();
 });

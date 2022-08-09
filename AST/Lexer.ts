@@ -8,6 +8,10 @@ function IsAlpha(char: string): boolean {
 function IsNumeric(char: string): boolean {
     return ("0" <= char && char <= "9");
 }
+function IsValidConfigValueChar(char: string)
+{
+    return IsAlphaNum(char) || char === "-" || char === "," || char === "%" || char === "." || char === "/";
+}
 
 function IsAlphaNum(char: string): boolean {
     return IsAlpha(char) || IsNumeric(char);
@@ -126,8 +130,7 @@ const lexer = function (str: string) {
             else {
                 log(`configValue char: '${char}`, "isWhitespace", IsWhitespace(char), "isAlphaNum", IsAlphaNum(char))
                 if ((IsWhitespace(char) && quoteOpen) ||
-                    //@ts-expect-error
-                    (IsAlphaNum(char) || char === "-" || char === ",")) {
+                    (IsValidConfigValueChar(char))) {
                         value += char
                     }
                     
@@ -194,7 +197,6 @@ const lexer = function (str: string) {
 
     function block(): BlockToken|null {
         if (char !== BLOCK_OPEN) return null;
-        const start = position();
         let blockType = "";
         next();
         // 1. Discard leading ws after open brace and Determine the block type by first word e.g. [slide background=FFFFFF] yields slide as block type
@@ -207,11 +209,11 @@ const lexer = function (str: string) {
         switch(blockType.toLowerCase())
         {
             case "slide":
-            case "new_slide":
-            case "new.slide":
                 return slideProperties();
             case "style":
                 return styleBlock();
+            case "image":
+                return imageBlock();
             default:
                 return null;
         }
@@ -244,6 +246,34 @@ const lexer = function (str: string) {
         block.start = start;
         block.end = position();
         return block;
+    }
+
+    function imageBlock()
+    {
+        const start = position();
+        const block: ImageBlockToken = {
+            type: "ImageBlock",
+            properties: [],
+            start
+        };
+        while (IsWhitespace(char)) next();
+        while (char !== BLOCK_CLOSE)
+        {
+            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
+            const configToken = configValue() || whitespace() || configKey();
+            if (configToken) { 
+                block.properties.push(configToken);
+            }
+            else
+            {
+                next();
+            }
+        }
+        next();
+        block.end = position();
+        return block;
+
+        
     }
 
     function contentString(): ContentStringToken {

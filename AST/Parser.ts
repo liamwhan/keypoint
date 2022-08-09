@@ -1,4 +1,4 @@
-
+import path from "path";
 
 function parseOffset(offsetString: string): Offset {
     const offset: Offset = {
@@ -15,9 +15,7 @@ function parseOffset(offsetString: string): Offset {
     return offset;
 }
 
-
 function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
-    
     let properties: ConfigBlockProperties = {
         align: "center",
         valign: "top",
@@ -63,6 +61,37 @@ function parseContentString(token: ContentStringToken): ContentNode {
         contentType: "string",
         value: token.value
     };
+}
+
+function parseContentImage(token: ImageBlockToken): ContentNode
+{
+    if (token.type != "ImageBlock") throw new Error("Parse Error: parseContentImage called on token that is not an ImageBlock. Token Type: " + token.type);
+    const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
+    if (pathIndex === 0) throw new SyntaxError("No path provided for image content."); // Note indexOf will return -1 if not found then we add 1 to it.
+    const filepath = path.resolve(__dirname, token.properties[pathIndex].value);
+
+    const parsed: ContentNode = {
+        type: "Content",
+        contentType: "image",
+        value: filepath,
+        properties: {
+            width: "100%",
+            height: "100%",
+            path: filepath
+        }
+    };
+
+    const props: ImageProperties = parsed.properties;
+    
+    if (token.properties.length < 2) return ;
+    for (let i = 0; i < token.properties.length; i += 2) {
+        const k = token.properties[i].value;
+        const v = token.properties[i + 1].value;
+        props[k] = v;
+    }
+
+    
+    return parsed;
 }
 
 function defaultStyleBlock(): StyleBlockNode {
@@ -133,12 +162,22 @@ export function parse(tokens: KPToken[]): DocumentNode {
                 slide.contents.push(parseStyleBlock(token as StyleBlockToken))
                 break;
             case "ContentString":
+            {
                 const content = parseContentString(token as ContentStringToken);
-                console.log("Seeking for parent Style Block", slide.contents);
                 const config = seekContentConfig(slide.contents);
                 content.properties = { ...config.properties };
                 slide.contents.push(content);
                 break;
+            }
+            case "ImageBlock":
+            { 
+                const content = parseContentImage(token as ImageBlockToken);
+                const config = seekContentConfig(slide.contents);
+                content.properties = {...content.properties, ...config.properties};
+                slide.contents.push(content);
+                break;
+            }
+                
             case "EOL":
                 // slide.contents.push({ type: "EOL" });
                 break;

@@ -33,7 +33,7 @@ interface ContentNode extends KPNode
     type: "Content";
     contentType: "string"|"image";
     value: string;
-    properties?: ConfigBlockProperties;
+    properties?: ConfigBlockProperties & ImageProperties;
 
 }
 //#endregion
@@ -43,12 +43,12 @@ type VerticalAlign = "top"|"center"|"bottom";
 
 interface ConfigBlockProperties
 {
-    align: Align;
-    valign: VerticalAlign;
-    font: string;
-    "font-size": string;
-    "font-color": string;
-    offset: Offset;
+    align?: Align;
+    valign?: VerticalAlign;
+    font?: string;
+    "font-size"?: string;
+    "font-color"?: string;
+    offset?: Offset;
 }
 
 interface SlideProperties
@@ -90,8 +90,23 @@ interface Window {
 
 interface KPPreloadLoader {
     relativePath: (fragment: string) => Promise<string>;
-    load: (filepath: string) => Promise<void>;
+    load: (filepath: string) => Promise<DocumentNode>;
     openFile: () => Promise<void>;
+}
+
+interface SlideRenderState
+{
+    currentLine: number;
+    currentFont: string;
+    currentFontSize: string;
+    lastTextMetrics?: TextMetrics
+}
+
+interface ImageProperties
+{
+    width?: string;
+    height?: string;
+    path?: string;
 }
 
 //#region Lexer Token types
@@ -100,11 +115,11 @@ interface TokenLocation {
     line: number;
     column: number;
 }
-type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"PageBreak"|"EOL"|"EOF";
+type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"PageBreak"|"EOL"|"EOF";
 interface KPToken {
     type: KPTokenType;
-    start: TokenLocation;
-    end:TokenLocation;
+    start?: TokenLocation;
+    end?:TokenLocation;
 }
 
 interface SlidePropertiesToken extends KPToken
@@ -119,6 +134,8 @@ interface ContentStringToken extends KPToken
     value: string;
 }
 
+
+
 interface ConfigKeyValueToken extends KPToken
 {
     type: "ConfigKey"|"ConfigValue";
@@ -129,14 +146,13 @@ interface ConfigKeyValueToken extends KPToken
 
 interface BlockToken extends KPToken
 {
-    type:"ConfigBlock"|"SlideProperties"|"StyleBlock";
+    type:"SlideProperties"|"StyleBlock"|"ImageBlock";
     properties: ConfigKeyValueToken[];
 }
 
-// TODO(liam): Remove;
-interface ConfigBlockToken extends BlockToken
+interface ImageBlockToken extends BlockToken
 {
-    type: "ConfigBlock";
+    type: "ImageBlock";
 }
 
 interface StyleBlockToken extends BlockToken

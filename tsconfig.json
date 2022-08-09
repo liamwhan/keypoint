@@ -26,7 +26,8 @@
       "AST/Parser.ts",
       "SlideRenderer.ts",
       "index.ts",
-      "renderer.ts"
+      "renderer.ts",
+      "preload.ts"
       
     ],
     "exclude": [
