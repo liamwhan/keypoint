@@ -1,4 +1,5 @@
 import path from "path";
+import {app} from "electron";
 
 function parseOffset(offsetString: string): Offset {
     const offset: Offset = {
@@ -68,8 +69,8 @@ function parseContentImage(token: ImageBlockToken): ContentNode
     if (token.type != "ImageBlock") throw new Error("Parse Error: parseContentImage called on token that is not an ImageBlock. Token Type: " + token.type);
     const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
     if (pathIndex === 0) throw new SyntaxError("No path provided for image content."); // Note indexOf will return -1 if not found then we add 1 to it.
-    const filepath = path.resolve(__dirname, token.properties[pathIndex].value);
-
+    const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
+    console.log("Image file path resolved", filepath);
     const parsed: ContentNode = {
         type: "Content",
         contentType: "image",
@@ -86,11 +87,12 @@ function parseContentImage(token: ImageBlockToken): ContentNode
     if (token.properties.length < 2) return ;
     for (let i = 0; i < token.properties.length; i += 2) {
         const k = token.properties[i].value;
+        if (k === "path") continue; // We've already parsed the path above
         const v = token.properties[i + 1].value;
         props[k] = v;
     }
 
-    
+
     return parsed;
 }
 

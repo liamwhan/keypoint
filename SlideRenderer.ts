@@ -8,13 +8,37 @@ let canvas:HTMLCanvasElement,
 const padY = 20;
 const padX = 20;
 
-
+interface ImagePreload
+{
+    src: string;
+    img: HTMLImageElement;
+}
+const preloadedImages: ImagePreload[] = [];
 
 let renderState: SlideRenderState = {
     currentLine: 0,
     currentFont: "Arial",
     currentFontSize: "12px",
     lastTextMetrics: undefined
+}
+
+// Preload images in the background on slide load so we can draw them faster
+function preloadImages(ast: DocumentNode)
+{   
+    setTimeout(() => {
+        const imagePaths = ast.slides.map(s => {
+            const imgPaths = s.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "image").map((c) => (c as ContentNode).value);
+            return imgPaths;
+        }).flat();
+        for(const src of imagePaths)
+        {
+            const img = document.createElement("img");
+            img.setAttribute("src", src);
+            img.addEventListener("load", (e) => {
+                preloadedImages.push({src, img});
+            });
+        }
+    }, 1)
 }
 
 function clearRenderState(): SlideRenderState
@@ -74,7 +98,7 @@ function calculateLineOffset(fontSizePx: number | string): number
 function drawImage(content: ContentNode): void {
     const ctx = getCtx();
     const props = content.properties;
-    const imagePath = props.path;
+    const imagePath = content.value;
     const alignH = props.align;
     const alignV = props.valign;
     const offsetY = props.offset.top;
@@ -85,45 +109,38 @@ function drawImage(content: ContentNode): void {
     
     let x: number, y: number;
 
-    // Load image into DOM first
-    const img = document.createElement("img");
-    img.setAttribute("src", imagePath);
-    img.addEventListener("load", (e) => {
-        const { naturalWidth: nw, naturalHeight: nh} = img;
-        const dw = nw * dwp;
-        const dh = nh * dhp;
-        
-        if (alignH === "center")
-        {
-            x = cx - (dw / 2) + offsetX;
-        }
-        else if (alignH === "left")
-        {
-            x = padX + offsetX;
-        }
-        else 
-        {
-            x = canvas.width - dw + offsetX;
-        }
+    const {img} = preloadedImages.find(i => i.src === imagePath);
+    const { naturalWidth: nw, naturalHeight: nh} = img;
+    const dw = nw * dwp;
+    const dh = nh * dhp;
+    
+    if (alignH === "center")
+    {
+        x = cx - (dw / 2) + offsetX;
+    }
+    else if (alignH === "left")
+    {
+        x = padX + offsetX;
+    }
+    else 
+    {
+        x = canvas.width - dw + offsetX;
+    }
 
-        if (alignV === "center")
-        {
-            y = cy - (dh / 2) + offsetY + calculateLineOffset(renderState.currentFontSize);
-        }
-        else if (alignV === "top")
-        {
-            y = padY + offsetY + calculateLineOffset(renderState.currentFontSize);
-        }
-        else
-        {
-            y = canvas.height - dh - padY + offsetY + calculateLineOffset(renderState.currentFontSize);
-        }
+    if (alignV === "center")
+    {
+        y = cy - (dh / 2) + offsetY + calculateLineOffset(renderState.currentFontSize);
+    }
+    else if (alignV === "top")
+    {
+        y = padY + offsetY + calculateLineOffset(renderState.currentFontSize);
+    }
+    else
+    {
+        y = canvas.height - dh - padY + offsetY + calculateLineOffset(renderState.currentFontSize);
+    }
 
-        ctx.drawImage(img, x, y, dw, dh);
-
-    })
-
-
+    ctx.drawImage(img, x, y, dw, dh);
 }
 
 function drawText(content: ContentNode): void {

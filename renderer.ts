@@ -1,9 +1,4 @@
 
-interface SlideState {
-    filePath: string;
-    activeSlideIndex: number;
-    activeSlide: SlideNode;
-}
 
 type DOMReadyCallbackSync = () => void;
 type DOMReadyCallbackAsync = () => Promise<void>;
@@ -24,7 +19,7 @@ function Clamp(i: number, min: number, max: number): number
     return i;
 }
 
-function initSlideState(ast: DocumentNode, file: string)
+function initSlideState(ast: DocumentNode, file: string) : SlideState
 {
     return {
         filePath: file,
@@ -50,6 +45,9 @@ function initSlideState(ast: DocumentNode, file: string)
             this.activeSlideIndex = target;
             this.activeSlide = this.slides[target];
             this.render();
+        },
+        preloadImages: function() {
+            preloadImages(this.slideDoc);
         }
     };
 }
@@ -58,6 +56,7 @@ function docLoaded(ast: DocumentNode, file: string): void
 {
     initCanvas();
     window.SlideState = initSlideState(ast, file);
+    window.SlideState.preloadImages();
     window.SlideState.render(); 
 
 }
@@ -97,6 +96,7 @@ DOMReady(async () => {
 
     initCanvas();
     window.SlideState = initSlideState(ast, pathResolved);
+    window.SlideState.preloadImages();
     window.SlideState.render();
     window.addEventListener("resize", () =>  window.SlideState.render());
 

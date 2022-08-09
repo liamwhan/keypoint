@@ -72,6 +72,7 @@ interface SlideState
     render: () => void;
     back: () => void;
     forward: () => void;
+    preloadImages: () => void;
 }
 
 interface KeyState
