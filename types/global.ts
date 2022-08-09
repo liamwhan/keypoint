@@ -31,7 +31,7 @@ interface StyleBlockNode extends KPNode
 interface ContentNode extends KPNode
 {
     type: "Content";
-    contentType: "string"|"image";
+    contentType: "string"|"image"|"video";
     value: string;
     properties?: ConfigBlockProperties & ImageProperties;
 
@@ -72,7 +72,7 @@ interface SlideState
     render: () => void;
     back: () => void;
     forward: () => void;
-    preloadImages: () => void;
+    preload: () => void;
 }
 
 interface KeyState
@@ -103,11 +103,14 @@ interface SlideRenderState
     lastTextMetrics?: TextMetrics
 }
 
-interface ImageProperties
+interface MediaProperties
+{
+    path?: string;
+}
+interface ImageProperties extends MediaProperties
 {
     width?: string;
     height?: string;
-    path?: string;
 }
 
 //#region Lexer Token types
@@ -116,7 +119,7 @@ interface TokenLocation {
     line: number;
     column: number;
 }
-type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"PageBreak"|"EOL"|"EOF";
+type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"VideoBlock"|"PageBreak"|"EOL"|"EOF";
 interface KPToken {
     type: KPTokenType;
     start?: TokenLocation;
@@ -147,10 +150,14 @@ interface ConfigKeyValueToken extends KPToken
 
 interface BlockToken extends KPToken
 {
-    type:"SlideProperties"|"StyleBlock"|"ImageBlock";
+    type:"SlideProperties"|"StyleBlock"|"ImageBlock"|"VideoBlock";
     properties: ConfigKeyValueToken[];
 }
 
+interface VideoBlockToken extends BlockToken
+{
+    type: "VideoBlock";
+}
 interface ImageBlockToken extends BlockToken
 {
     type: "ImageBlock";

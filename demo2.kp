@@ -9,9 +9,9 @@ And this should be under the test
 
 
 
-
-[style align=left valign=bottom font="Comic Sans MS" font-size=60px font-color=3d3d3d]
-here is more text
+[slide background=D4DCCD]
+[style align=center valign=center]
+[video path="./vid.mkv"]
 
 
 

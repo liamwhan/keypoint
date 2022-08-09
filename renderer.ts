@@ -46,8 +46,9 @@ function initSlideState(ast: DocumentNode, file: string) : SlideState
             this.activeSlide = this.slides[target];
             this.render();
         },
-        preloadImages: function() {
+        preload: function() {
             preloadImages(this.slideDoc);
+            preloadVideos(this.slideDoc);
         }
     };
 }
@@ -56,7 +57,7 @@ function docLoaded(ast: DocumentNode, file: string): void
 {
     initCanvas();
     window.SlideState = initSlideState(ast, file);
-    window.SlideState.preloadImages();
+    window.SlideState.preload();
     window.SlideState.render(); 
 
 }
@@ -94,10 +95,7 @@ DOMReady(async () => {
     const ast = await window.loader.load(pathResolved);
     console.log(ast);
 
-    initCanvas();
-    window.SlideState = initSlideState(ast, pathResolved);
-    window.SlideState.preloadImages();
-    window.SlideState.render();
+    docLoaded(ast, pathResolved);
     window.addEventListener("resize", () =>  window.SlideState.render());
 
 });

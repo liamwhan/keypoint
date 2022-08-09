@@ -70,7 +70,6 @@ function parseContentImage(token: ImageBlockToken): ContentNode
     const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
     if (pathIndex === 0) throw new SyntaxError("No path provided for image content."); // Note indexOf will return -1 if not found then we add 1 to it.
     const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
-    console.log("Image file path resolved", filepath);
     const parsed: ContentNode = {
         type: "Content",
         contentType: "image",
@@ -83,6 +82,36 @@ function parseContentImage(token: ImageBlockToken): ContentNode
     };
 
     const props: ImageProperties = parsed.properties;
+    
+    if (token.properties.length < 2) return ;
+    for (let i = 0; i < token.properties.length; i += 2) {
+        const k = token.properties[i].value;
+        if (k === "path") continue; // We've already parsed the path above
+        const v = token.properties[i + 1].value;
+        props[k] = v;
+    }
+
+
+    return parsed;
+}
+function parseContentVideo(token: VideoBlockToken): ContentNode
+{
+    if (token.type != "VideoBlock") throw new Error("Parse Error: parseContentVideo called on token that is not a VideoBlock. Token Type: " + token.type);
+    const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
+    if (pathIndex === 0) throw new SyntaxError("No path provided for video content."); // Note indexOf will return -1 if not found then we add 1 to it.
+    const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
+    const parsed: ContentNode = {
+        type: "Content",
+        contentType: "video",
+        value: filepath,
+        properties: {
+            width: "100%",
+            height: "100%",
+            path: filepath
+        }
+    };
+
+    const props: MediaProperties = parsed.properties;
     
     if (token.properties.length < 2) return ;
     for (let i = 0; i < token.properties.length; i += 2) {
@@ -174,6 +203,14 @@ export function parse(tokens: KPToken[]): DocumentNode {
             case "ImageBlock":
             { 
                 const content = parseContentImage(token as ImageBlockToken);
+                const config = seekContentConfig(slide.contents);
+                content.properties = {...content.properties, ...config.properties};
+                slide.contents.push(content);
+                break;
+            }
+            case "VideoBlock":
+            {
+                const content = parseContentVideo(token as VideoBlockToken);
                 const config = seekContentConfig(slide.contents);
                 content.properties = {...content.properties, ...config.properties};
                 slide.contents.push(content);

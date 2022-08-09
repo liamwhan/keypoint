@@ -214,6 +214,8 @@ const lexer = function (str: string) {
                 return styleBlock();
             case "image":
                 return imageBlock();
+            case "video":
+                return videoBlock();
             default:
                 return null;
         }
@@ -248,7 +250,33 @@ const lexer = function (str: string) {
         return block;
     }
 
-    function imageBlock()
+    function videoBlock(): VideoBlockToken
+    {
+        const start = position();
+        const block: VideoBlockToken = {
+            type: "VideoBlock",
+            properties: [],
+            start
+        }
+        while(IsWhitespace(char)) next();
+        while(char !== BLOCK_CLOSE)
+        {
+            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
+            const configToken = configValue() || whitespace() || configKey();
+            if (configToken) { 
+                block.properties.push(configToken);
+            }
+            else
+            {
+                next();
+            }
+        }
+        next();
+        block.end = position();
+        return block;
+    }
+
+    function imageBlock(): ImageBlockToken
     {
         const start = position();
         const block: ImageBlockToken = {

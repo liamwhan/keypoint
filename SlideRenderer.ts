@@ -13,7 +13,16 @@ interface ImagePreload
     src: string;
     img: HTMLImageElement;
 }
+
+interface VideoPreload
+{
+    src: string;
+    video: HTMLVideoElement;
+}
+
 const preloadedImages: ImagePreload[] = [];
+const preloadedVideos: VideoPreload[] = [];
+
 
 let renderState: SlideRenderState = {
     currentLine: 0,
@@ -37,6 +46,24 @@ function preloadImages(ast: DocumentNode)
             img.addEventListener("load", (e) => {
                 preloadedImages.push({src, img});
             });
+        }
+    }, 1)
+}
+// Preload videos in the background on slide load so we can draw them faster
+function preloadVideos(ast: DocumentNode)
+{   
+    setTimeout(() => {
+        const videoPaths = ast.slides.map(s => {
+            const vPaths = s.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "video").map((c) => (c as ContentNode).value);
+            return vPaths;
+        }).flat();
+        console.log("Preloading", videoPaths.length, "videos", videoPaths);
+        for(const src of videoPaths)
+        {
+            const video = document.createElement("video");
+            preloadedVideos.push({src, video});
+            video.setAttribute("src", src);
+            video.setAttribute("preload", "auto");
         }
     }, 1)
 }
@@ -143,6 +170,33 @@ function drawImage(content: ContentNode): void {
     ctx.drawImage(img, x, y, dw, dh);
 }
 
+function videoTimer(e?: Event|DOMHighResTimeStamp)
+{
+    const video = this as HTMLVideoElement;
+    if (video.paused || video.ended) return;
+
+    const ctx = getCtx();
+    ctx.drawImage(video, 0,0, video.videoWidth * 0.3, video.videoHeight * 0.3);
+    window.requestAnimationFrame(videoTimer.bind(this))
+    
+}
+
+function drawVideo(content: ContentNode): void {
+    const ctx = getCtx();
+    const props = content.properties;
+    const videoPath = content.value;
+    const alignH = props.align;
+    const alignV = props.valign;
+    const offsetY = props.offset.top;
+    const offsetX = props.offset.left;
+    
+    let x: number, y: number;
+
+    const {video} = preloadedVideos.find(i => i.src === videoPath);
+    video.addEventListener("play", videoTimer);
+    video.play();
+}
+
 function drawText(content: ContentNode): void {
     const ctx = getCtx();
     const props = content.properties;
@@ -207,6 +261,9 @@ function renderSlide(slide: SlideNode): void {
                     break;
                 case "image": 
                     drawImage(c as ContentNode);
+                    break;
+                case "video":
+                    drawVideo(c as ContentNode);
                     break;
                 default:
                     break;
