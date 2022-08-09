@@ -177,8 +177,7 @@ function videoTimer(e?: Event|DOMHighResTimeStamp)
 
     const ctx = getCtx();
     ctx.drawImage(video, 0,0, video.videoWidth * 0.3, video.videoHeight * 0.3);
-    window.requestAnimationFrame(videoTimer.bind(this))
-    
+    window.requestAnimationFrame(videoTimer.bind(this));
 }
 
 function drawVideo(content: ContentNode): void {
