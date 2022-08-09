@@ -16,6 +16,8 @@ interface SlideNode extends KPNode {
     id: number;
     properties?: SlideProperties;
     contents: KPNode[];
+    prev: SlideNode|null;
+    next: SlideNode|null;
 
 }
 interface ConfigBlockNode extends KPNode
@@ -51,9 +53,24 @@ interface ConfigBlockProperties
     offset?: Offset;
 }
 
+type SlideTransitionType = "none" | "dissolve";
+interface SlideTransition
+{
+    /**
+     * The slide transition type
+     */
+    type: SlideTransitionType;
+
+    /**
+     * The duration of the transition in ms
+     */
+    duration: number;
+}
+
 interface SlideProperties
 {
     background?: string;
+    transition?: SlideTransition;
 }
 
 interface Offset {

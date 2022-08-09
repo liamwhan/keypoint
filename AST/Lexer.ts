@@ -1,5 +1,5 @@
-const BLOCK_OPEN:string = "[";
-const BLOCK_CLOSE:string = "]";
+const BLOCK_OPEN: string = "[";
+const BLOCK_CLOSE: string = "]";
 
 function IsAlpha(char: string): boolean {
     return ("a" <= char && char <= "z") || ("A" <= char && char <= "Z");
@@ -8,8 +8,7 @@ function IsAlpha(char: string): boolean {
 function IsNumeric(char: string): boolean {
     return ("0" <= char && char <= "9");
 }
-function IsValidConfigValueChar(char: string)
-{
+function IsValidConfigValueChar(char: string) {
     return IsAlphaNum(char) || char === "-" || char === "," || char === "%" || char === "." || char === "/";
 }
 
@@ -25,7 +24,7 @@ function IsLineEnding(char: string): boolean {
     return char === "\r" || char === "\n";
 }
 
-function IsEOF(char: string|undefined): boolean {
+function IsEOF(char: string | undefined): boolean {
     return char === undefined;
 }
 
@@ -83,14 +82,14 @@ const lexer = function (str: string) {
         return null;
     }
 
-    function endOfFile(): EOFToken|null {
+    function endOfFile(): EOFToken | null {
         if (char === undefined) {
             next();
             const start = position();
             const end = position();
             return {
                 type: "EOF",
-                start, 
+                start,
                 end
             };
         }
@@ -128,53 +127,11 @@ const lexer = function (str: string) {
                 quoteOpen = !quoteOpen;
             }
             else {
+
                 log(`configValue char: '${char}`, "isWhitespace", IsWhitespace(char), "isAlphaNum", IsAlphaNum(char))
                 if ((IsWhitespace(char) && quoteOpen) ||
                     (IsValidConfigValueChar(char))) {
-                        value += char
-                    }
-                    
-                    if (IsWhitespace(char) && !quoteOpen) {
-                        break;
-                    }
-                }
-                
-                next();
-                
-            }
-            const end = position();
-            
-            return {
-                type: "ConfigValue",
-                value,
-                start,
-                end
-            }
-        }
-        
-        function configValueSlide(): ConfigKeyValueToken {
-            if (char !== "=") return null;
-            let value = "";
-            let quoteOpen = false;
-            const start = position();
-            while (!IsLineEnding(char)) {
-            //@ts-expect-error
-            if (char === `"`) {
-                quoteOpen = !quoteOpen;
-            }
-            //@ts-expect-error
-            else if (char === "#")
-            {
-                // Ignore extranous hash for hex colors
-                next();
-            }
-            else {
-                if ((IsWhitespace(char) && quoteOpen) ||
-                //@ts-expect-error
-                    (IsAlphaNum(char) || char === "-" || char === ",")) {
                     value += char
-                    next();
-                    continue
                 }
 
                 if (IsWhitespace(char) && !quoteOpen) {
@@ -195,19 +152,53 @@ const lexer = function (str: string) {
         }
     }
 
-    function block(): BlockToken|null {
+    function configValueSlide(): ConfigKeyValueToken {
+        if (char !== "=") return null;
+        let value = "";
+        let quoteOpen = false;
+        const start = position();
+        while (!IsLineEnding(char)) {
+            // @ts-expect-error
+            if (char === "#") {
+                // Ignore extranous hash for hex colors
+                next();
+            }
+            else 
+            {
+                if ((IsWhitespace(char) && quoteOpen) || IsValidConfigValueChar(char)) {
+                    value += char
+                    next();
+                    continue;
+                }
+
+                if (IsWhitespace(char) && !quoteOpen) {
+                    break;
+                }
+            }
+
+            next();
+        }
+        const end = position();
+
+        return {
+            type: "ConfigValue",
+            value,
+            start,
+            end
+        }
+    }
+
+    function block(): BlockToken | null {
         if (char !== BLOCK_OPEN) return null;
         let blockType = "";
         next();
         // 1. Discard leading ws after open brace and Determine the block type by first word e.g. [slide background=FFFFFF] yields slide as block type
-        while(IsWhitespace(char)) next();
-        while(IsAlpha(char))
-        {
+        while (IsWhitespace(char)) next();
+        while (IsAlpha(char)) {
             blockType += char;
             next();
         }
-        switch(blockType.toLowerCase())
-        {
+        switch (blockType.toLowerCase()) {
             case "slide":
                 return slideProperties();
             case "style":
@@ -222,13 +213,13 @@ const lexer = function (str: string) {
 
     }
 
-    function styleBlock(): StyleBlockToken|null {
+    function styleBlock(): StyleBlockToken | null {
         const start = position();
         const block: StyleBlockToken = {
             type: "StyleBlock",
             properties: [],
             start,
-            end: {i: 0, line: 0, column: 0}
+            end: { i: 0, line: 0, column: 0 }
         };
 
         // The block() routine iterates until it gets to the first whitespace character (not including any ws between open brace and first word)
@@ -250,24 +241,21 @@ const lexer = function (str: string) {
         return block;
     }
 
-    function videoBlock(): VideoBlockToken
-    {
+    function videoBlock(): VideoBlockToken {
         const start = position();
         const block: VideoBlockToken = {
             type: "VideoBlock",
             properties: [],
             start
         }
-        while(IsWhitespace(char)) next();
-        while(char !== BLOCK_CLOSE)
-        {
+        while (IsWhitespace(char)) next();
+        while (char !== BLOCK_CLOSE) {
             if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
             const configToken = configValue() || whitespace() || configKey();
-            if (configToken) { 
+            if (configToken) {
                 block.properties.push(configToken);
             }
-            else
-            {
+            else {
                 next();
             }
         }
@@ -276,8 +264,7 @@ const lexer = function (str: string) {
         return block;
     }
 
-    function imageBlock(): ImageBlockToken
-    {
+    function imageBlock(): ImageBlockToken {
         const start = position();
         const block: ImageBlockToken = {
             type: "ImageBlock",
@@ -285,15 +272,13 @@ const lexer = function (str: string) {
             start
         };
         while (IsWhitespace(char)) next();
-        while (char !== BLOCK_CLOSE)
-        {
+        while (char !== BLOCK_CLOSE) {
             if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
             const configToken = configValue() || whitespace() || configKey();
-            if (configToken) { 
+            if (configToken) {
                 block.properties.push(configToken);
             }
-            else
-            {
+            else {
                 next();
             }
         }
@@ -301,7 +286,7 @@ const lexer = function (str: string) {
         block.end = position();
         return block;
 
-        
+
     }
 
     function contentString(): ContentStringToken {
@@ -317,7 +302,7 @@ const lexer = function (str: string) {
         return {
             type: "ContentString",
             value,
-            start, 
+            start,
             end
         };
     }
@@ -327,22 +312,21 @@ const lexer = function (str: string) {
         while (IsWhitespace(char)) next();
         const start = position();
         const properties: ConfigKeyValueToken[] = [];
-        
+
 
         while (!IsLineEnding(char) && !IsEOF(char)) {
             if (IsWhitespace(char)) next();
-            const configToken =  configValueSlide() || configKey();
-            if (configToken)
-            {
-               properties.push(configToken)
+            const configToken = configValueSlide() || configKey();
+            if (configToken) {
+                properties.push(configToken)
             }
             else {
                 next();
             }
-            
+
         }
         const end = position();
-        
+
         return {
             type: "SlideProperties",
             properties,
@@ -372,4 +356,4 @@ const lexer = function (str: string) {
 }
 
 
-export {lexer};
+export { lexer };

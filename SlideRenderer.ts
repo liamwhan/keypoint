@@ -32,7 +32,7 @@ let renderState: SlideRenderState = {
 }
 
 // Preload images in the background on slide load so we can draw them faster
-function preloadImages(ast: DocumentNode)
+function preloadImages(ast: DocumentNode): void
 {   
     setTimeout(() => {
         const imagePaths = ast.slides.map(s => {
@@ -47,10 +47,10 @@ function preloadImages(ast: DocumentNode)
                 preloadedImages.push({src, img});
             });
         }
-    }, 1)
+    }, 0);
 }
 // Preload videos in the background on slide load so we can draw them faster
-function preloadVideos(ast: DocumentNode)
+function preloadVideos(ast: DocumentNode): void
 {   
     setTimeout(() => {
         const videoPaths = ast.slides.map(s => {
@@ -65,7 +65,7 @@ function preloadVideos(ast: DocumentNode)
             video.setAttribute("src", src);
             video.setAttribute("preload", "auto");
         }
-    }, 1)
+    }, 0)
 }
 
 function clearRenderState(): SlideRenderState
@@ -191,8 +191,12 @@ function drawVideo(content: ContentNode): void {
     
     let x: number, y: number;
 
+
     const {video} = preloadedVideos.find(i => i.src === videoPath);
-    video.addEventListener("play", videoTimer);
+    video.addEventListener("play", () => {
+        if (video.paused || video.ended) return;
+
+    });
     video.play();
 }
 
@@ -214,8 +218,8 @@ function drawText(content: ContentNode): void {
     ctx.textBaseline = "bottom";
     ctx.textAlign = alignH;
 
-    const tm = ctx.measureText(text);
-    const th = tm.actualBoundingBoxAscent;
+    const tm = renderState.lastTextMetrics = ctx.measureText(text);
+    const th = tm.actualBoundingBoxAscent; tm.actualBoundingBoxDescent
     let x: number, y: number;
 
     // TODO(liam): Calculate if the text will overflow the canvas and wrap
@@ -257,8 +261,17 @@ function stopAll()
     }
 }
 
+function queueSlide(slide: SlideNode){
+
+}
+
 function renderSlide(slide: SlideNode): void {
     stopAll();
+    // if (slide.properties.transition.type !== "none")
+    // {
+    //     queueSlide(slide);
+    //     return
+    // }
     initCanvas();
     clear(slide.properties.background);
     for (let c of slide.contents) {

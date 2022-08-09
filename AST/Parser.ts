@@ -15,6 +15,37 @@ function parseOffset(offsetString: string): Offset {
     }
     return offset;
 }
+const VALID_TRANSISTION_TYPES: SlideTransitionType[] = ["dissolve"];
+function parseTransition(transitionValue: string): SlideTransition
+{
+    const transition: SlideTransition = {
+        type: "dissolve",
+        duration: 1
+    };
+    const s = transitionValue.split(",");
+    let d: number, type: SlideTransitionType;
+    for(const t of s)
+    {
+        if (/^\d\.{0,1}\d{0,2}m?s?$/.test(t))
+        {
+            // Duration value
+            if (t.indexOf("ms") > -1)
+            {
+                d = parseInt(t.replace("ms", "")); // NOTE(liam): We just truncate any floating point values passed as ms;
+            } 
+            else 
+            {
+                d = Math.round(parseInt(t.replace("s", "s")) * 1000);
+            }
+            transition.duration = d;
+        } else {
+            if (!VALID_TRANSISTION_TYPES.includes(t as SlideTransitionType)) throw new Error(`'${t}' is not a valid Slide Transition Type`);
+            transition.type = t as SlideTransitionType;
+        }
+    }
+
+    return transition;
+}
 
 function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
     let properties: ConfigBlockProperties = {
@@ -42,13 +73,13 @@ function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
     return parsed;
 }
 function parseSlideProperties(token: SlidePropertiesToken): SlideProperties {
-    const slideProps: SlideProperties = { background: "#FFFFFF" };
+    const slideProps: SlideProperties = { background: "#FFFFFF", transition: {type: "none", duration: 0} };
     const userProps: SlideProperties = {};
 
     if (token.properties.length < 2) return slideProps;
     for (let i = 0; i < token.properties.length; i += 2) {
-        const k = token.properties[i].value;
-        const v = token.properties[i + 1].value;
+        const k = token.properties[i].value.toLocaleLowerCase();
+        const v = (k === "transition") ? parseTransition(token.properties[i + 1].value) : token.properties[i + 1].value;
         userProps[k] = v;
     }
 
@@ -154,8 +185,15 @@ export function parse(tokens: KPToken[]): DocumentNode {
             type: "Slide",
             id: slideN++,
             properties: {},
-            contents: []
+            contents: [],
+            prev: null,
+            next: null
         };
+        console.log("New Slide Id", slide.id);
+        if(slide.id > 0) {
+            slide.prev = ast.slides[slide.id - 1];
+            ast.slides[slide.id-1].next = slide;
+        }
         ast.slides.push(slide);
         return slide;
     }
