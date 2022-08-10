@@ -2,28 +2,28 @@
 This is the simplest slide in existance. These are the default values.
 
 
-[slide background=3083DC transition=dissolve,2s]
+[slide background=3083DC transition=dissolve,1s]
 [style align=center valign=center font="Segoe UI" font-size=60px font-color=000000 offset=t-100,l0]
 This is a test
 And this should be under the test
 
 
 
-[slide background=D4DCCD]
+[slide background=D4DCCD transition=dissolve,500ms]
 [style align=center valign=center]
 [video path="./vid.mkv"]
 
 
 
-[slide background=353531]
+[slide background=353531 transition=dissolve,1s]
 [style align=center valign=center font="Verdana" font-size=60px font-color=F0F0F0]
-This text should appear above an image of the forest
 [image width=70% path="./test.jpg"]
+This text should appear above an image of the forest
 
 
 
 
-[slide background=CC3363]
+[slide background=CC3363 transition=dissolve,500ms]
 [style align=right valign=bottom font="Helvetica" font-size=60px font-color=FFFFFF]
 This is the last slide
 

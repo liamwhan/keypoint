@@ -117,7 +117,8 @@ interface SlideRenderState
     currentLine: number;
     currentFont: string;
     currentFontSize: string;
-    lastTextMetrics?: TextMetrics
+    lastTextMetrics?: TextMetrics;
+    activeSlide?: SlideNode;
 }
 
 interface MediaProperties

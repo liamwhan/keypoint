@@ -29,8 +29,7 @@ function initSlideState(ast: DocumentNode, file: string) : SlideState
         slides: ast.slides,
         slideDoc: ast,
         render: function() {
-            initCanvas();
-            renderSlide(this.activeSlide);
+            changeSlide(this.activeSlide);
         },
         back: function() {
             const target = Clamp(this.activeSlideIndex - 1, 0, this.slideCount - 1);
@@ -96,6 +95,9 @@ DOMReady(async () => {
     console.log(ast);
 
     docLoaded(ast, pathResolved);
-    window.addEventListener("resize", () =>  window.SlideState.render());
+    window.addEventListener("resize", () => {
+        initCanvas();
+        window.SlideState.render()
+    });
 
 });
