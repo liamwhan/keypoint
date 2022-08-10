@@ -175,12 +175,14 @@ function defaultStyleBlock(): StyleBlockNode {
 
 export function parse(tokens: KPToken[]): DocumentNode {
     let slideN = 0;
+    let contentN = 0;
     const ast: DocumentNode = {
         type: "Document",
         slides: []
     }
 
     function newSlide(): SlideNode {
+        contentN = 0;
         const slide: SlideNode = {
             type: "Slide",
             id: slideN++,
@@ -235,6 +237,7 @@ export function parse(tokens: KPToken[]): DocumentNode {
                 const content = parseContentString(token as ContentStringToken);
                 const config = seekContentConfig(slide.contents);
                 content.properties = { ...config.properties };
+                content.id = contentN++;
                 slide.contents.push(content);
                 break;
             }

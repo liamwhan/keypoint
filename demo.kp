@@ -2,10 +2,8 @@
 [slide]
 This is the simplest slide in existance. These are the default values.
 
-
-
 # The [slide] block creates a new slide, and you can also specify the slide background and transition settings here
-# Note that transitions will apply when switching TO a slide. Each slide only gets to decide what transition will  
+# Note that transitions will apply when switching TO a slide. Each slide only gets to decide what transition will be shown
 # when switching from another slide to itself
 [slide background=3083DC transition=dissolve,1s]
 [style align=center valign=center font="Segoe UI" font-size=60px font-color=000000 offset=t-100,l0]
@@ -16,12 +14,13 @@ And this should be under the test
 [slide background=D4DCCD transition=dissolve,500ms]
 [style align=center valign=center]
 [video path="./vid.mkv"]
-
+[style align=center valign=bottom font="Arial", font-color=000000 font-size=60px]
+This slide contains a video
 
 [slide background=353531 transition=dissolve,1s]
 [style align=center valign=center font="Sofia Pro" font-size=60px font-color=F0F0F0]
 [image width=100% path="./test.jpg"]
-This text should appear above an image of the forest
+This text is over an image of the forest
 
 
 [slide background=CC3363 transition=dissolve,500ms]

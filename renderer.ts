@@ -97,7 +97,7 @@ DOMReady(async () => {
     docLoaded(ast, pathResolved);
     window.addEventListener("resize", () => {
         initCanvas();
-        window.SlideState.render()
+        window.SlideState.render();
     });
 
 });

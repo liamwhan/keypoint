@@ -36,7 +36,7 @@ interface ContentNode extends KPNode
     contentType: "string"|"image"|"video";
     value: string;
     properties?: ConfigBlockProperties & ImageProperties;
-
+    id?: number;
 }
 //#endregion
 
