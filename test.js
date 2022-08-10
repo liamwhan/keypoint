@@ -7,9 +7,6 @@ const slide = fs.readFileSync(DEMO, {encoding: "utf-8"});
 const tokens = lexer(slide);
 for(let token of tokens)
 {
-    if (token.type === "SlideProperties"){
-
-        console.log(token);
-    }
+    console.log(token);
 }
 

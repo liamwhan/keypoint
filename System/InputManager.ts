@@ -11,6 +11,7 @@ const keyDownListener = window.addEventListener("keydown", (e) => {
     KeyState.AltDown = e.altKey;
     KeyState.ShiftDown = e.shiftKey;
     KeyState.MetaKeyDown = e.metaKey;
+    KeyState.KeyCode = e.key;
 
     window.PS.Publish(Channel.KEYDOWN, e.key, KeyState);
 });

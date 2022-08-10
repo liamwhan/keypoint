@@ -20,6 +20,11 @@ function IsWhitespace(char: string): boolean {
     return char === " " || char == "\t";
 }
 
+function IsLineCommentMarker(char: string)
+{
+    return char === "#";
+}
+
 function IsLineEnding(char: string): boolean {
     return char === "\r" || char === "\n";
 }
@@ -54,6 +59,23 @@ const lexer = function (str: string) {
         return { i, line, column };
     }
 
+    function whitespace(): null {
+        log("Checking char for whitespace, Char", char, "i", i);
+        while (IsWhitespace(char)) next();
+        log("Discarded whitespace. Char:", char, "i:", i)
+        return null;
+    }
+    
+    function lineComment(): null {
+        if (!IsLineCommentMarker(char)) return null;
+        while (!IsLineEnding(char)) next(); // Ignore line comments
+        while (IsLineEnding(char)) next(); // Seek to start of next line
+        line++;
+        column =1;
+        if (IsLineCommentMarker(char)) return lineComment(); // If the next line is a comment too, recurse
+        return null;
+    }
+
     function endOfLine(): EOLToken {
         log("Checking for endOfLine char: ", char, "IsLineEnding", IsLineEnding(char));
         if (!IsLineEnding(char)) return null;
@@ -75,12 +97,6 @@ const lexer = function (str: string) {
 
     }
 
-    function whitespace(): null {
-        log("Checking char for whitespace, Char", char, "i", i);
-        while (IsWhitespace(char)) next();
-        log("Discarded whitespace. Char:", char, "i:", i)
-        return null;
-    }
 
     function endOfFile(): EOFToken | null {
         if (char === undefined) {
@@ -337,6 +353,7 @@ const lexer = function (str: string) {
     const tokens: KPToken[] = [];
     for (; i <= str.length;) {
         const token: KPToken = whitespace() ||
+            lineComment() ||
             endOfLine() ||
             contentString() ||
             block() ||
