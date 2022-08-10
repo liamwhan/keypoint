@@ -4,6 +4,8 @@ import { parse } from "./AST/Parser";
 import path from "path";
 import fs from "fs";
 
+if (require('electron-squirrel-startup')) app.quit();
+
 let win: BrowserWindow;
 
 function load(filePath: string)
