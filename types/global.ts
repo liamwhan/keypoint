@@ -137,11 +137,17 @@ interface TokenLocation {
     line: number;
     column: number;
 }
-type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"VideoBlock"|"PageBreak"|"EOL"|"EOF";
+type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"VideoBlock"|"PageBreak"|"Include"|"EOL"|"EOF";
 interface KPToken {
     type: KPTokenType;
     start?: TokenLocation;
     end?:TokenLocation;
+}
+
+interface IncludeToken extends KPToken
+{
+    type: "Include";
+    path: string;
 }
 
 interface SlidePropertiesToken extends KPToken

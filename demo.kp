@@ -2,6 +2,11 @@
 [slide]
 This is the simplest slide in existance. These are the default values.
 
+# You can include the entire contents of another kp file with !include this allows you to break up
+# your Slide deck into multiple files if you wish to. The .kp extension is assumed.
+!include ./inc
+
+
 # The [slide] block creates a new slide, and you can also specify the slide background and transition settings here
 # Note that transitions will apply when switching TO a slide. Each slide only gets to decide what transition will be shown
 # when switching from another slide to itself
