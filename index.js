@@ -41,7 +41,7 @@ const createWindow = () => {
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path_1.default.join(__dirname, "preload.js")
+            preload: path_1.default.join(__dirname, "Preload.js")
         }
     });
     const menu = electron_1.Menu.buildFromTemplate([

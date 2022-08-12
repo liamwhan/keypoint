@@ -1,5 +1,3 @@
-
-
 type DOMReadyCallbackSync = () => void;
 type DOMReadyCallbackAsync = () => Promise<void>;
 type DOMReadyCallback = DOMReadyCallbackSync & DOMReadyCallbackAsync;
