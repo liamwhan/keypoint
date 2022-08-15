@@ -1,13 +1,15 @@
 import path from "path";
-import {app} from "electron";
+import { app } from "electron";
 
-function parseOffset(offsetString: string): Offset {
+function parseOffset(offsetString: string): Offset
+{
     const offset: Offset = {
         top: 0,
         left: 0
     };
     const s = offsetString.split(",");
-    for (const o of s) {
+    for (const o of s)
+    {
         const e = o.substring(0, 1);
         const k = e === "t" ? "top" : "left";
         const v = parseInt(o.substring(1));
@@ -24,7 +26,7 @@ function parseTransition(transitionValue: string): SlideTransition
     };
     const s = transitionValue.split(",");
     let d: number, type: SlideTransitionType;
-    for(const t of s)
+    for (const t of s)
     {
         if (/^\d\.{0,1}\d{0,2}m?s?$/.test(t))
         {
@@ -32,13 +34,14 @@ function parseTransition(transitionValue: string): SlideTransition
             if (t.indexOf("ms") > -1)
             {
                 d = parseInt(t.replace("ms", "")); // NOTE(liam): We just truncate any floating point values passed as ms;
-            } 
+            }
             else 
             {
                 d = Math.round(parseInt(t.replace("s", "s")) * 1000);
             }
             transition.duration = d;
-        } else {
+        } else
+        {
             if (!VALID_TRANSISTION_TYPES.includes(t as SlideTransitionType)) throw new Error(`'${t}' is not a valid Slide Transition Type`);
             transition.type = t as SlideTransitionType;
         }
@@ -47,7 +50,8 @@ function parseTransition(transitionValue: string): SlideTransition
     return transition;
 }
 
-function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
+function parseStyleBlock(token: StyleBlockToken): StyleBlockNode
+{
     let properties: StyleBlockProperties = {
         align: "center",
         valign: "top",
@@ -65,25 +69,28 @@ function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
     };
 
     if (token.properties.length < 2) return parsed;
-    for (let i = 0, len = token.properties.length; i < len; i += 2) {
+    for (let i = 0, len = token.properties.length; i < len; i += 2)
+    {
         const k = token.properties[i].value;
         const v = (k === "offset") ? parseOffset(token.properties[i + 1].value) : token.properties[i + 1].value;
         properties[k] = v;
     }
     return parsed;
 }
-function parseSlideProperties(token: SlidePropertiesToken): SlideProperties {
-    const slideProps: SlideProperties = { 
-        background: "#FFFFFF", 
+function parseSlideProperties(token: SlidePropertiesToken): SlideProperties
+{
+    const slideProps: SlideProperties = {
+        background: "#FFFFFF",
         transition: {
-            type: "none", 
+            type: "none",
             duration: 0
-        } 
+        }
     };
     const userProps: SlideProperties = {};
 
     if (token.properties.length < 2) return slideProps;
-    for (let i = 0; i < token.properties.length; i += 2) {
+    for (let i = 0; i < token.properties.length; i += 2)
+    {
         const k = token.properties[i].value.toLocaleLowerCase();
         const v = (k === "transition") ? parseTransition(token.properties[i + 1].value) : token.properties[i + 1].value;
         userProps[k] = v;
@@ -92,7 +99,8 @@ function parseSlideProperties(token: SlidePropertiesToken): SlideProperties {
     return { ...slideProps, ...userProps };
 }
 
-function parseContentString(token: ContentStringToken): ContentNode {
+function parseContentString(token: ContentStringToken): ContentNode
+{
     if (token.type != "ContentString") throw new Error("Parse Error: parseContentString called on token that is not a ContentString. Token Type: " + token.type);
     return {
         type: "Content",
@@ -114,7 +122,7 @@ function parseHeaderProperties(token: HeaderBlockToken): HeaderFooterProperties
     for (let i = 0; i < token.properties.length; i += 2)
     {
         const k = token.properties[i].value.toLocaleLowerCase();
-        const v = token.properties[i+1].value;
+        const v = token.properties[i + 1].value;
         userProps[k] = v;
     }
 
@@ -139,9 +147,10 @@ function parseContentImage(token: ImageBlockToken): ContentNode
     };
 
     const props: ImageProperties = parsed.properties;
-    
-    if (token.properties.length < 2) return ;
-    for (let i = 0; i < token.properties.length; i += 2) {
+
+    if (token.properties.length < 2) return;
+    for (let i = 0; i < token.properties.length; i += 2)
+    {
         const k = token.properties[i].value;
         if (k === "path") continue; // We've already parsed the path above
         const v = token.properties[i + 1].value;
@@ -169,9 +178,10 @@ function parseContentVideo(token: VideoBlockToken): ContentNode
     };
 
     const props: MediaProperties = parsed.properties;
-    
-    if (token.properties.length < 2) return ;
-    for (let i = 0; i < token.properties.length; i += 2) {
+
+    if (token.properties.length < 2) return;
+    for (let i = 0; i < token.properties.length; i += 2)
+    {
         const k = token.properties[i].value;
         if (k === "path") continue; // We've already parsed the path above
         const v = token.properties[i + 1].value;
@@ -182,7 +192,8 @@ function parseContentVideo(token: VideoBlockToken): ContentNode
     return parsed;
 }
 
-function defaultStyleBlock(): StyleBlockNode {
+function defaultStyleBlock(): StyleBlockNode
+{
     return {
         type: "StyleBlock",
         properties: {
@@ -199,7 +210,31 @@ function defaultStyleBlock(): StyleBlockNode {
     };
 }
 
-export function parse(tokens: KPToken[]): DocumentNode {
+function parseHeaderFooterContents(tokens: KPToken[]): KPNode[]
+{
+    const nodes: KPNode[] = [];
+    for (let i = 0; i < tokens.length; i++)
+    {
+        const token = tokens[i];
+        switch (token.type)
+        {
+            case "StyleBlock":
+                nodes.push(parseStyleBlock(token as StyleBlockToken))
+                break;
+            case "ContentString":
+                {
+                    const content = parseContentString(token as ContentStringToken);
+                    nodes.push(content);
+                    break;
+                }
+        }
+    }
+
+    return nodes;
+}
+
+export function parse(tokens: KPToken[]): DocumentNode
+{
     let slideN = 0;
     let contentN = 0;
     let headerN = 0;
@@ -211,7 +246,8 @@ export function parse(tokens: KPToken[]): DocumentNode {
         footers: {}
     }
 
-    function newSlide(): SlideNode {
+    function newSlide(): SlideNode
+    {
         contentN = 0;
         const slide: SlideNode = {
             type: "Slide",
@@ -222,9 +258,10 @@ export function parse(tokens: KPToken[]): DocumentNode {
             next: null
         };
         console.log("New Slide Id", slide.id);
-        if(slide.id > 0) {
+        if (slide.id > 0)
+        {
             slide.prev = ast.slides[slide.id - 1];
-            ast.slides[slide.id-1].next = slide;
+            ast.slides[slide.id - 1].next = slide;
         }
         ast.slides.push(slide);
         return slide;
@@ -232,18 +269,21 @@ export function parse(tokens: KPToken[]): DocumentNode {
 
 
 
-    function seekContentConfig(contents: KPNode[]): StyleBlockNode {
+    function seekContentConfig(contents: KPNode[]): StyleBlockNode
+    {
         let config: StyleBlockNode;
         // Seeks backwards in the AST from a content string at i 
         // to find it's nearest ConfigBlock
-        for (let j = contents.length - 1; j >= 0; j--) {
+        for (let j = contents.length - 1; j >= 0; j--)
+        {
             const node = contents[j];
             if (node.type !== "StyleBlock") continue;
             config = node as StyleBlockNode;
             break;
         }
 
-        if (!config) {
+        if (!config)
+        {
             config = defaultStyleBlock();
         }
 
@@ -253,8 +293,8 @@ export function parse(tokens: KPToken[]): DocumentNode {
     function getContentTokensToNextSlide(token: KPToken, tokens: KPToken[]): KPToken[]
     {
         const contentTokens: KPToken[] = [];
-        for(let i = tokens.indexOf(token) + 1, len = tokens.length; 
-            tokens[i].type !== "SlideProperties" && i<len; 
+        for (let i = tokens.indexOf(token) + 1, len = tokens.length;
+            tokens[i].type !== "SlideProperties" && i < len;
             i++)
         {
             const t = tokens[i];
@@ -266,52 +306,62 @@ export function parse(tokens: KPToken[]): DocumentNode {
 
     let slide: SlideNode;
 
-    for (let i=0, len=tokens.length; i<len; i++) {
+    for (let i = 0, len = tokens.length; i < len; i++)
+    {
         const token = tokens[i];
         console.log("Parsing token type:", token.type);
-        switch (token.type) {
+        switch (token.type)
+        {
             case "SlideProperties":
                 slide = newSlide();
                 slide.properties = parseSlideProperties(token as SlidePropertiesToken);
                 break;
             case "HeaderBlock":
-                headerN++;
-                const headerProperties = parseHeaderProperties(token as HeaderBlockToken);
-                if (headerProperties.name === "") headerProperties.name = `header-${headerN}`;
-                const contents = getContentTokensToNextSlide(token, tokens);
-                const lastToken = contents[contents.length - 1];
-                const lastIdx = tokens.indexOf(lastToken);
-                i = lastIdx;
-                
+                {
+                    headerN++;
+                    const properties = parseHeaderProperties(token as HeaderBlockToken);
+                    if (properties.name === "") properties.name = `header-${headerN}`;
+                    const contentTokens = getContentTokensToNextSlide(token, tokens);
+                    const lastToken = contentTokens[contentTokens.length - 1];
+                    const lastIdx = tokens.indexOf(lastToken);
+                    i = lastIdx;
+                    const contents = parseHeaderFooterContents(contentTokens);
+                    ast.headers[properties.name] = {
+                        type: "Header",
+                        properties: properties,
+                        contents
+                    };
+                    break;
+                }
             case "StyleBlock":
                 slide.contents.push(parseStyleBlock(token as StyleBlockToken))
                 break;
             case "ContentString":
-            {
-                const content = parseContentString(token as ContentStringToken);
-                const config = seekContentConfig(slide.contents);
-                content.properties = { ...config.properties };
-                content.id = contentN++;
-                slide.contents.push(content);
-                break;
-            }
+                {
+                    const content = parseContentString(token as ContentStringToken);
+                    const config = seekContentConfig(slide.contents);
+                    content.properties = { ...config.properties };
+                    content.id = contentN++;
+                    slide.contents.push(content);
+                    break;
+                }
             case "ImageBlock":
-            { 
-                const content = parseContentImage(token as ImageBlockToken);
-                const config = seekContentConfig(slide.contents);
-                content.properties = {...content.properties, ...config.properties};
-                slide.contents.push(content);
-                break;
-            }
+                {
+                    const content = parseContentImage(token as ImageBlockToken);
+                    const config = seekContentConfig(slide.contents);
+                    content.properties = { ...content.properties, ...config.properties };
+                    slide.contents.push(content);
+                    break;
+                }
             case "VideoBlock":
-            {
-                const content = parseContentVideo(token as VideoBlockToken);
-                const config = seekContentConfig(slide.contents);
-                content.properties = {...content.properties, ...config.properties};
-                slide.contents.push(content);
-                break;
-            }
-                
+                {
+                    const content = parseContentVideo(token as VideoBlockToken);
+                    const config = seekContentConfig(slide.contents);
+                    content.properties = { ...content.properties, ...config.properties };
+                    slide.contents.push(content);
+                    break;
+                }
+
             case "EOL":
                 // slide.contents.push({ type: "EOL" });
                 break;
