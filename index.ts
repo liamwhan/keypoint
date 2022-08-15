@@ -68,7 +68,7 @@ const createWindow = ():void => {
     win.webContents.openDevTools();
     ipcMain.handle("relativePath", (event, fragment) => path.resolve(__dirname, fragment));
     ipcMain.handle("load", (event, file) => load(file));
-    ipcMain.handle("fileOpen", (event) => openFile())
+    ipcMain.handle("openFile", (event) => openFile())
     win.loadFile("index.html");
 };
 

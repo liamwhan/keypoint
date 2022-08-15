@@ -14,7 +14,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "electron-forge start -- --log-level=3" ,
     "watch": "tsc -w",
     "package": "electron-forge package",
     "make": "electron-forge make --arch=x64"

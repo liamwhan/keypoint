@@ -63,7 +63,7 @@ const createWindow = () => {
     win.webContents.openDevTools();
     electron_1.ipcMain.handle("relativePath", (event, fragment) => path_1.default.resolve(__dirname, fragment));
     electron_1.ipcMain.handle("load", (event, file) => load(file));
-    electron_1.ipcMain.handle("fileOpen", (event) => openFile());
+    electron_1.ipcMain.handle("openFile", (event) => openFile());
     win.loadFile("index.html");
 };
 electron_1.protocol.registerSchemesAsPrivileged([

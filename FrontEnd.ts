@@ -52,10 +52,18 @@ function initSlideState(ast: DocumentNode, file: string) : SlideState
 
 function docLoaded(ast: DocumentNode, file: string): void
 {
+    const openButton = document.querySelector("button.open") as HTMLButtonElement;
+    canvas = document.querySelector("canvas#cnv") as HTMLCanvasElement;
+    openButton.classList.add("hide");
+    canvas.classList.remove("hide");
+    window.removeEventListener("resize", resizeHandler);
+
     initCanvas();
     window.SlideState = initSlideState(ast, file);
     window.SlideState.preload();
     window.SlideState.render(); 
+
+    window.addEventListener("resize", resizeHandler);
 
 }
 
@@ -77,8 +85,16 @@ function keyDownHandler(key: string, KeyState: KeyState) : void
     }
 }
 
-DOMReady(async () => {
+const resizeHandler = () => {
+    initCanvas();
+    window.SlideState.render();
+};
 
+DOMReady(async () => {
+    const openButton = document.querySelector("button.open") as HTMLButtonElement;
+    openButton.addEventListener("click", async () => {
+        await window.loader.openFile();
+    });
     window.addEventListener("docLoaded", (e: CustomEvent) => {
         const { ast, file } = e.detail;
         docLoaded(ast as DocumentNode, file as string);
@@ -86,16 +102,11 @@ DOMReady(async () => {
     window.PS.Subscribe(Channel.KEYUP, "renderer", keyUpHandler);
     window.PS.Subscribe(Channel.KEYDOWN, "renderer", keyDownHandler);
 
-    const DEMO = "demo.kp";
-    const pathResolved = await window.loader.relativePath(DEMO);
-    console.log(pathResolved);
-    const ast = await window.loader.load(pathResolved);
-    console.log(ast);
+    // const DEMO = "demo.kp";
+    // const pathResolved = await window.loader.relativePath(DEMO);
+    // console.log(pathResolved);
+    // const ast = await window.loader.load(pathResolved);
+    // console.log(ast);
 
-    docLoaded(ast, pathResolved);
-    window.addEventListener("resize", () => {
-        initCanvas();
-        window.SlideState.render();
-    });
-
+    // docLoaded(ast, pathResolved);
 });

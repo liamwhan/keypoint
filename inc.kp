@@ -1,5 +1,3 @@
 [slide background=EDEDED]
 This slide will be inserted by an include statement
 
-# This include statement will be ignored if this file is not the base/entry file
-!include ./demo.kp

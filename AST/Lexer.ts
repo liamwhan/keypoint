@@ -468,7 +468,7 @@ const lexer = function (str: string, isInclude: boolean = false)
             p = p.indexOf(".kp") === -1 ? `${p}.kp` : p;
             console.log("Processing include at", p);
             const inc = fs.readFileSync(p, {encoding: "utf-8"});
-            const iTokens = lexer(inc).filter(it => it.type !== "EOF");
+            const iTokens = lexer(inc, true).filter(it => it.type !== "EOF");
             tokens.splice(j, 1, ...iTokens);
         }
     
