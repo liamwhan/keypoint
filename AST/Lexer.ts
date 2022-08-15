@@ -253,6 +253,10 @@ const lexer = function (str: string, isInclude: boolean = false)
         }
         switch (blockType.toLowerCase())
         {
+            case "header":
+                return headerBlock();
+            case "footer":
+                return footerBlock();
             case "slide":
                 return slideProperties();
             case "style":
@@ -267,6 +271,56 @@ const lexer = function (str: string, isInclude: boolean = false)
 
     }
 
+    function blockConfig(block: BlockToken): BlockToken
+    {
+        // The block() routine iterates until it gets to the first whitespace character (not including any ws between open brace and first word)
+        // So the cursor is guaranteed to be on whitespace if this gets called
+        while(IsWhitespace(char)) next();
+        while(char !== BLOCK_CLOSE)
+        {
+            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${block.start.line} character ${block.start.column}`);
+            const configToken = configValue() || whitespace() || configKey();
+            if (configToken)
+            {
+                block.properties.push(configToken);
+            }
+            else
+            {
+                next();
+            }
+        }
+        next();
+        block.end = position();
+        return block;
+    }
+
+
+    function headerBlock(): HeaderBlockToken | null
+    {
+        const start = position();
+        const block: HeaderBlockToken = {
+            type: "HeaderBlock",
+            properties: [],
+            start,
+            end: { i: 0, line: 0, column: 0 }
+        };
+
+        return blockConfig(block) as HeaderBlockToken;
+    }
+
+    function footerBlock(): FooterBlockToken | null
+    {
+        const start = position();
+        const block: FooterBlockToken = {
+            type: "FooterBlock",
+            properties: [],
+            start,
+            end: { i: 0, line: 0, column: 0 }
+        };
+
+        return blockConfig(block) as FooterBlockToken;
+    }
+
     function styleBlock(): StyleBlockToken | null
     {
         const start = position();
@@ -277,27 +331,7 @@ const lexer = function (str: string, isInclude: boolean = false)
             end: { i: 0, line: 0, column: 0 }
         };
 
-        // The block() routine iterates until it gets to the first whitespace character (not including any ws between open brace and first word)
-        // So the cursor is guaranteed to be on whitespace if this gets called
-        while (IsWhitespace(char)) next();
-        while (char !== BLOCK_CLOSE)
-        {
-            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
-            const configToken = configValue() || whitespace() || configKey();
-            if (configToken)
-            {
-                block.properties.push(configToken);
-            } 
-            else
-            {
-                next();
-            }
-
-        }
-        next();
-        block.start = start;
-        block.end = position();
-        return block;
+       return blockConfig(block) as StyleBlockToken;
     }
 
     function videoBlock(): VideoBlockToken
@@ -308,23 +342,8 @@ const lexer = function (str: string, isInclude: boolean = false)
             properties: [],
             start
         }
-        while (IsWhitespace(char)) next();
-        while (char !== BLOCK_CLOSE)
-        {
-            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
-            const configToken = configValue() || whitespace() || configKey();
-            if (configToken)
-            {
-                block.properties.push(configToken);
-            }
-            else
-            {
-                next();
-            }
-        }
-        next();
-        block.end = position();
-        return block;
+        
+        return blockConfig(block) as VideoBlockToken;
     }
 
     function imageBlock(): ImageBlockToken
@@ -335,25 +354,7 @@ const lexer = function (str: string, isInclude: boolean = false)
             properties: [],
             start
         };
-        while (IsWhitespace(char)) next();
-        while (char !== BLOCK_CLOSE)
-        {
-            if (char === undefined) throw new SyntaxError(`Unclosed configuration block starting at L${start.line} character ${start.column}`);
-            const configToken = configValue() || whitespace() || configKey();
-            if (configToken)
-            {
-                block.properties.push(configToken);
-            }
-            else
-            {
-                next();
-            }
-        }
-        next();
-        block.end = position();
-        return block;
-
-
+        return blockConfig(block) as ImageBlockToken;
     }
 
     function contentString(): ContentStringToken

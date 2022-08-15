@@ -48,7 +48,7 @@ function parseTransition(transitionValue: string): SlideTransition
 }
 
 function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
-    let properties: ConfigBlockProperties = {
+    let properties: StyleBlockProperties = {
         align: "center",
         valign: "top",
         font: "Arial",
@@ -73,7 +73,13 @@ function parseStyleBlock(token: StyleBlockToken) : StyleBlockNode {
     return parsed;
 }
 function parseSlideProperties(token: SlidePropertiesToken): SlideProperties {
-    const slideProps: SlideProperties = { background: "#FFFFFF", transition: {type: "none", duration: 0} };
+    const slideProps: SlideProperties = { 
+        background: "#FFFFFF", 
+        transition: {
+            type: "none", 
+            duration: 0
+        } 
+    };
     const userProps: SlideProperties = {};
 
     if (token.properties.length < 2) return slideProps;
@@ -95,9 +101,29 @@ function parseContentString(token: ContentStringToken): ContentNode {
     };
 }
 
+function parseHeaderProperties(token: HeaderBlockToken): HeaderFooterProperties
+{
+    if (token.type !== "HeaderBlock") throw new Error("Parse Error: parseHeaderBlock called on token that is not a HeaderBlock. Token Type: " + token.type);
+    const headerProps: HeaderFooterProperties = {
+        name: "",
+        "page-number": false
+    };
+    const userProps: HeaderFooterProperties = {};
+
+    if (token.properties.length < 2) return headerProps
+    for (let i = 0; i < token.properties.length; i += 2)
+    {
+        const k = token.properties[i].value.toLocaleLowerCase();
+        const v = token.properties[i+1].value;
+        userProps[k] = v;
+    }
+
+    return { ...headerProps, ...userProps };
+}
+
 function parseContentImage(token: ImageBlockToken): ContentNode
 {
-    if (token.type != "ImageBlock") throw new Error("Parse Error: parseContentImage called on token that is not an ImageBlock. Token Type: " + token.type);
+    if (token.type !== "ImageBlock") throw new Error("Parse Error: parseContentImage called on token that is not an ImageBlock. Token Type: " + token.type);
     const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
     if (pathIndex === 0) throw new SyntaxError("No path provided for image content."); // Note indexOf will return -1 if not found then we add 1 to it.
     const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
@@ -176,9 +202,13 @@ function defaultStyleBlock(): StyleBlockNode {
 export function parse(tokens: KPToken[]): DocumentNode {
     let slideN = 0;
     let contentN = 0;
+    let headerN = 0;
+    let footerN = 0;
     const ast: DocumentNode = {
         type: "Document",
-        slides: []
+        slides: [],
+        headers: {},
+        footers: {}
     }
 
     function newSlide(): SlideNode {
@@ -220,15 +250,39 @@ export function parse(tokens: KPToken[]): DocumentNode {
         return config;
     }
 
+    function getContentTokensToNextSlide(token: KPToken, tokens: KPToken[]): KPToken[]
+    {
+        const contentTokens: KPToken[] = [];
+        for(let i = tokens.indexOf(token) + 1, len = tokens.length; 
+            tokens[i].type !== "SlideProperties" && i<len; 
+            i++)
+        {
+            const t = tokens[i];
+            contentTokens.push(t);
+        }
+
+        return contentTokens;
+    }
+
     let slide: SlideNode;
 
-    for (const token of tokens) {
+    for (let i=0, len=tokens.length; i<len; i++) {
+        const token = tokens[i];
         console.log("Parsing token type:", token.type);
         switch (token.type) {
             case "SlideProperties":
                 slide = newSlide();
                 slide.properties = parseSlideProperties(token as SlidePropertiesToken);
                 break;
+            case "HeaderBlock":
+                headerN++;
+                const headerProperties = parseHeaderProperties(token as HeaderBlockToken);
+                if (headerProperties.name === "") headerProperties.name = `header-${headerN}`;
+                const contents = getContentTokensToNextSlide(token, tokens);
+                const lastToken = contents[contents.length - 1];
+                const lastIdx = tokens.indexOf(lastToken);
+                i = lastIdx;
+                
             case "StyleBlock":
                 slide.contents.push(parseStyleBlock(token as StyleBlockToken))
                 break;

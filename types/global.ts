@@ -1,14 +1,19 @@
 
 //#region AST Nodes
-type KPNodeType = "Document"|"Slide"|"SlideProperties"|"StyleBlock"|"ConfigBlock"|"Content";
+type KPNodeType = "Document"|"Slide"|"SlideProperties"|"StyleBlock"|"ConfigBlock"|"Content"|"Header"|"Footer";
 
 interface KPNode {
     type: KPNodeType;
 }
 
+interface HeaderFooterDict {
+    [name:string]: HeaderNode | FooterNode;
+}
 interface DocumentNode extends KPNode {
     type: "Document",
-    slides: SlideNode[];
+    slides: SlideNode[],
+    headers: HeaderFooterDict,
+    footers: HeaderFooterDict
 }
 
 interface SlideNode extends KPNode {
@@ -18,24 +23,38 @@ interface SlideNode extends KPNode {
     contents: KPNode[];
     prev: SlideNode|null;
     next: SlideNode|null;
-
 }
+
+interface HeaderNode extends KPNode {
+    type: "Header";
+    properties?: HeaderFooterProperties;
+    contents: KPNode[];
+}
+
+interface FooterNode extends KPNode {
+    type: "Footer";
+    properties?: HeaderFooterProperties;
+    contents: KPNode[];
+}
+
 interface ConfigBlockNode extends KPNode
 {
     type: "ConfigBlock";
-    properties: ConfigBlockProperties;
+    properties: StyleBlockProperties;
 }
+
 interface StyleBlockNode extends KPNode
 {
     type: "StyleBlock";
-    properties: ConfigBlockProperties;
+    properties: StyleBlockProperties;
 }
+
 interface ContentNode extends KPNode
 {
     type: "Content";
     contentType: "string"|"image"|"video";
     value: string;
-    properties?: ConfigBlockProperties & ImageProperties;
+    properties?: StyleBlockProperties & ImageProperties;
     id?: number;
 }
 //#endregion
@@ -43,7 +62,7 @@ interface ContentNode extends KPNode
 type Align = "left"|"right"|"center";
 type VerticalAlign = "top"|"center"|"bottom";
 
-interface ConfigBlockProperties
+interface StyleBlockProperties
 {
     align?: Align;
     valign?: VerticalAlign;
@@ -71,6 +90,7 @@ interface SlideProperties
 {
     background?: string;
     transition?: SlideTransition;
+    header?: string;
 }
 
 interface Offset {
@@ -125,10 +145,24 @@ interface MediaProperties
 {
     path?: string;
 }
+
 interface ImageProperties extends MediaProperties
 {
     width?: string;
     height?: string;
+}
+
+interface HeaderFooterProperties
+{
+    /**
+     * ID/Name of the header
+     */
+    name?: string;
+
+    /**
+     * Print right-aligned page numbers in the footer
+     */
+    "page-number"?: boolean;
 }
 
 //#region Lexer Token types
@@ -137,7 +171,8 @@ interface TokenLocation {
     line: number;
     column: number;
 }
-type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"VideoBlock"|"PageBreak"|"Include"|"EOL"|"EOF";
+
+type KPTokenType = "SlideProperties"|"StyleBlock"|"ConfigKey"|"ConfigValue"|"ConfigBlock"|"ContentString"|"ImageBlock"|"VideoBlock"|"HeaderBlock"|"FooterBlock"|"PageBreak"|"Include"|"EOL"|"EOF";
 interface KPToken {
     type: KPTokenType;
     start?: TokenLocation;
@@ -174,14 +209,25 @@ interface ConfigKeyValueToken extends KPToken
 
 interface BlockToken extends KPToken
 {
-    type:"SlideProperties"|"StyleBlock"|"ImageBlock"|"VideoBlock";
+    type:"SlideProperties"|"StyleBlock"|"ImageBlock"|"VideoBlock"|"HeaderBlock"|"FooterBlock";
     properties: ConfigKeyValueToken[];
+}
+
+interface HeaderBlockToken extends BlockToken
+{
+    type: "HeaderBlock";
+}
+
+interface FooterBlockToken extends BlockToken
+{
+    type: "FooterBlock";
 }
 
 interface VideoBlockToken extends BlockToken
 {
     type: "VideoBlock";
 }
+
 interface ImageBlockToken extends BlockToken
 {
     type: "ImageBlock";

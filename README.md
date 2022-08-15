@@ -95,7 +95,7 @@ The `[video]` block displays a video. Videos are always rendered in the center o
 ### Include
 You can include the contents of another `.kp` slide deck into a slide with the `!` include operator. This allows you the flexibility to split your slide deck across multiple files if you need to. 
 
-> **NOTE**: You can only include from the base/entry `.kp` file, include blocks within included files will be ignored to prevent circular references (including the base file again from the include file)
+> **NOTE**: You can only include from the base/entry `.kp` file, include blocks within included files will be ignored to prevent circular references (i.e. including the base file again from the include file)
 
 #### Include Example
 Base Slide file `base.kp`
