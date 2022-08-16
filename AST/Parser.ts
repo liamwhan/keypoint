@@ -123,7 +123,9 @@ function parseHeaderProperties(token: HeaderBlockToken): HeaderFooterProperties
     {
         const k = token.properties[i].value.toLocaleLowerCase();
         const v = token.properties[i + 1].value;
-        userProps[k] = v;
+        userProps[k] = (k === "page-number") 
+                        ? (v) === "true" ? true : false
+                        : v;
     }
 
     return { ...headerProps, ...userProps };
@@ -252,6 +254,7 @@ export function parse(tokens: KPToken[]): DocumentNode
         const slide: SlideNode = {
             type: "Slide",
             id: slideN++,
+            document: ast,
             properties: {},
             contents: [],
             prev: null,

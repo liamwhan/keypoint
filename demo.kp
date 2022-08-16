@@ -2,6 +2,8 @@
 [header name=header1 page-number=true]
 # Any [style] blocks or text content specified before the next slide constitute the header content
 [style font="Arial" align=left]
+My wonderful header 
+
 # This is a line comment - all text from the # to the end of the line will be ignored
 [slide header=header1]
 This is the simplest slide in existance. These are the default values.

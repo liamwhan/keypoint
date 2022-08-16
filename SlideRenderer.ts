@@ -63,8 +63,6 @@ function preloadImages(ast: DocumentNode): void
     }, 0);
 }
 
-
-
 // Preload videos in the background on slide load so we can draw them faster
 function preloadVideos(ast: DocumentNode): void
 {
@@ -155,13 +153,6 @@ function blend(colour1: string, a1: number, colour2: string, a2: number): void
 
 }
 
-// TODO(liam): This should take into account the font that was rendered and therefore should use TextMetrics
-function calculateLineOffset(fontSizePx: number | string): number
-{
-    if (typeof (fontSizePx) === "string") fontSizePx = parseInt(fontSizePx.replace("px", ""));
-    return renderState.currentLine * fontSizePx;
-}
-
 function drawImage(content: ContentNode, ctx?: CanvasRenderingContext2D): void
 {
     ctx = ctx ?? getCtx();
@@ -198,18 +189,18 @@ function drawImage(content: ContentNode, ctx?: CanvasRenderingContext2D): void
     if (alignV === "center")
     {
         y = cy - (dh / 2) + offsetY
-            //+ calculateLineOffset(renderState.currentFontSize)
             ;
     }
     else if (alignV === "top")
     {
         y = padY + offsetY
-            //+ calculateLineOffset(renderState.currentFontSize)
             ;
     }
     else
     {
-        y = canvas.height - dh - padY + offsetY + calculateLineOffset(renderState.currentFontSize);
+        y = canvas.height - dh - padY + offsetY 
+        // + calculateLineOffset(renderState.currentFontSize)
+        ;
     }
 
     ctx.drawImage(img, x, y, dw, dh);
@@ -348,6 +339,103 @@ function getLineOffset(td: TextDimensions)
     return offset;
 }
 
+function drawHeader(headerName: string, slide: SlideNode): void
+{
+    const ctx = getCtx();
+    ctx.save();
+    if (!slide.document.headers.hasOwnProperty(headerName)) return;
+    const header = slide.document.headers[headerName];
+    if (!header) return;
+    console.log("drawHeader", header)
+    
+    const style = header.contents.find(c => c.type === "StyleBlock") as StyleBlockNode;
+    if (!style) throw new Error("Could not find a style block in the header contents. This is a bug, there should be a default one");
+    const fontSize = parseInt(style.properties["font-size"].replace("px", "")) * 2;
+    
+    ctx.font = `${fontSize}px ${style.properties.font}`;
+    ctx.fillStyle = `#${style.properties["font-color"]}`;
+    ctx.textAlign = style.properties.align;
+    if (header.properties["page-number"])
+    {
+        ctx.textAlign = "right";
+        const text = `${slide.id + 1}`;
+        const ptm = ctx.measureText(text);
+        const pw = ptm.width;
+        const ph = ptm.actualBoundingBoxAscent;
+        const x = canvas.width - pw - padX;
+        const y = ph + padY;
+        console.log("Drawing Page Number", text, "at", `{${x},${y}}`);
+        ctx.fillText(text, x, y);
+    }
+    
+    const contents = header.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "string");
+    const line = 0;
+    ctx.textAlign = style.properties.align;
+    
+    for (let c of contents)
+    {
+        const content = c as ContentNode;
+        const text = content.value;
+        const htm = ctx.measureText(text);
+        const hw = htm.width;
+        const hh = htm.actualBoundingBoxAscent;
+        const x = padX;
+        const y = hh + padY;
+        console.log("Drawing Header", text, "at", `{${x},${y}}`);
+        ctx.fillText(text, x, y);
+    }
+    ctx.restore();
+
+}
+function drawFooter(headerName: string, slide: SlideNode): void
+{
+    const ctx = getCtx();
+    ctx.save();
+    if (!slide.document.headers.hasOwnProperty(headerName)) return;
+    const header = slide.document.headers[headerName];
+    if (!header) return;
+    console.log("drawHeader", header)
+    
+    const style = header.contents.find(c => c.type === "StyleBlock") as StyleBlockNode;
+    if (!style) throw new Error("Could not find a style block in the header contents. This is a bug, there should be a default one");
+    const fontSize = parseInt(style.properties["font-size"].replace("px", "")) * 2;
+    
+    ctx.font = `${fontSize}px ${style.properties.font}`;
+    ctx.fillStyle = `#${style.properties["font-color"]}`;
+    ctx.textAlign = style.properties.align;
+    if (header.properties["page-number"])
+    {
+        ctx.textAlign = "right";
+        const text = `${slide.id + 1}`;
+        const ptm = ctx.measureText(text);
+        const pw = ptm.width;
+        const ph = ptm.actualBoundingBoxAscent;
+        const x = canvas.width - pw - padX;
+        const y = ph + padY;
+        console.log("Drawing Page Number", text, "at", `{${x},${y}}`);
+        ctx.fillText(text, x, y);
+    }
+    
+    const contents = header.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "string");
+    const line = 0;
+    ctx.textAlign = style.properties.align;
+    
+    for (let c of contents)
+    {
+        const content = c as ContentNode;
+        const text = content.value;
+        const htm = ctx.measureText(text);
+        const hw = htm.width;
+        const hh = htm.actualBoundingBoxAscent;
+        const x = padX;
+        const y = hh + padY;
+        console.log("Drawing Header", text, "at", `{${x},${y}}`);
+        ctx.fillText(text, x, y);
+    }
+    ctx.restore();
+
+}
+
 function drawText(content: ContentNode, ctx?: CanvasRenderingContext2D): void
 {
     ctx = ctx ?? getCtx();
@@ -420,6 +508,76 @@ function stopAll()
         video.currentTime = 0;
     }
 }
+
+function getPreviousSlide(toSlide: SlideNode): SlideNode | null
+{
+    if (!renderState.activeSlide) return null;
+    return (toSlide.id > renderState.activeSlide.id) ? toSlide.prev : toSlide.next;
+}
+
+function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, autoplay?: boolean): void
+{
+    updateSlideTextDimensions(slide);
+    if (slide.properties.header)
+    {
+        drawHeader(slide.properties.header, slide);
+    }
+    
+    ctx = ctx ?? getCtx();
+    for (let c of slide.contents)
+    {
+        if (c.type === "Content")
+        {
+            switch ((c as ContentNode).contentType) 
+            {
+                case "string":
+                    drawText(c as ContentNode, ctx);
+                    break;
+                case "image":
+                    drawImage(c as ContentNode, ctx);
+                    break;
+                case "video":
+                    drawVideo(c as ContentNode, ctx, autoplay);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+function renderClear(s: SlideNode)
+{
+    updateSlideTextDimensions(s);
+
+    clear(s.properties.background);
+    if (s.properties.header)
+    {
+        drawHeader(s.properties.header, s);
+    }
+
+    for (let c of s.contents)
+    {
+        if (c.type === "Content")
+        {
+            switch ((c as ContentNode).contentType)
+            {
+                case "string":
+                    drawText(c as ContentNode);
+                    break;
+                case "image":
+                    drawImage(c as ContentNode);
+                    break;
+                case "video":
+                    drawVideo(c as ContentNode, undefined, true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 type TransitionCompleteCallback = (slide: SlideNode) => void;
 
 function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: TransitionCompleteCallback)
@@ -464,64 +622,6 @@ function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: Tran
 
 }
 
-function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, autoplay?: boolean): void
-{
-    updateSlideTextDimensions(slide);
-    ctx = ctx ?? getCtx();
-    for (let c of slide.contents)
-    {
-        if (c.type === "Content")
-        {
-            switch ((c as ContentNode).contentType) 
-            {
-                case "string":
-                    drawText(c as ContentNode, ctx);
-                    break;
-                case "image":
-                    drawImage(c as ContentNode, ctx);
-                    break;
-                case "video":
-                    drawVideo(c as ContentNode, ctx, autoplay);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
-
-function getPreviousSlide(toSlide: SlideNode): SlideNode | null
-{
-    if (!renderState.activeSlide) return null;
-    return (toSlide.id > renderState.activeSlide.id) ? toSlide.prev : toSlide.next;
-}
-
-function renderClear(s: SlideNode)
-{
-    updateSlideTextDimensions(s);
-
-    clear(s.properties.background);
-    for (let c of s.contents)
-    {
-        if (c.type === "Content")
-        {
-            switch ((c as ContentNode).contentType)
-            {
-                case "string":
-                    drawText(c as ContentNode);
-                    break;
-                case "image":
-                    drawImage(c as ContentNode);
-                    break;
-                case "video":
-                    drawVideo(c as ContentNode, undefined, true);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
 
 function changeSlide(slide: SlideNode): void
 {

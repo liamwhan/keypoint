@@ -52,6 +52,7 @@ function initSlideState(ast: DocumentNode, file: string) : SlideState
 
 function docLoaded(ast: DocumentNode, file: string): void
 {
+    console.log(ast);
     const openButton = document.querySelector("button.open") as HTMLButtonElement;
     canvas = document.querySelector("canvas#cnv") as HTMLCanvasElement;
     openButton.classList.toggle("hide");

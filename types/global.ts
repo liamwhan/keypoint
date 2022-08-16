@@ -19,6 +19,7 @@ interface DocumentNode extends KPNode {
 interface SlideNode extends KPNode {
     type: "Slide";
     id: number;
+    document: DocumentNode;
     properties?: SlideProperties;
     contents: KPNode[];
     prev: SlideNode|null;

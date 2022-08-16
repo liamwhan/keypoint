@@ -21,6 +21,7 @@
     "files": [
       "System/PubSub.ts",
       "System/InputManager.ts",
+      "System/Common.ts",
       "types/global.ts",
       "AST/Lexer.ts",
       "AST/Parser.ts",
