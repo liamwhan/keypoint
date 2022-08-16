@@ -13,22 +13,25 @@
       "allowJs": true,
       "typeRoots": ["types", "./node_modules/@types"],
       "inlineSourceMap": true,
+      "outDir": "./dist"
     },
     "typeAcquisition": {
       "enable": true,
     },
     
     "files": [
-      "System/PubSub.ts",
-      "System/InputManager.ts",
-      "System/Common.ts",
-      "types/global.ts",
-      "AST/Lexer.ts",
-      "AST/Parser.ts",
-      "SlideRenderer.ts",
-      "index.ts",
-      "FrontEnd.ts",
-      "Preload.ts"
+      "src/types/global.ts",
+      "src/types/Tokens.ts",
+      "src/types/Nodes.ts",
+      "src/System/PubSub.ts",
+      "src/System/InputManager.ts",
+      "src/System/Common.ts",
+      "src/AST/Lexer.ts",
+      "src/AST/Parser.ts",
+      "src/SlideRenderer.ts",
+      "src/index.ts",
+      "src/FrontEnd.ts",
+      "src/Preload.ts"
       
     ],
     "exclude": [

@@ -16,7 +16,7 @@ function load(filePath: string)
     }
 
     const input = fs.readFileSync(filePath, {encoding: "utf8"});
-    const tokens = lexer(input);
+    const tokens = lexer(input, filePath);
     const ast = parse(tokens);
     return ast;
 }

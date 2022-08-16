@@ -131,12 +131,12 @@ function parseHeaderProperties(token: HeaderBlockToken): HeaderFooterProperties
     return { ...headerProps, ...userProps };
 }
 
-function parseContentImage(token: ImageBlockToken): ContentNode
+function parseContentImage(token: ImageBlockToken, dir: string): ContentNode
 {
     if (token.type !== "ImageBlock") throw new Error("Parse Error: parseContentImage called on token that is not an ImageBlock. Token Type: " + token.type);
     const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
     if (pathIndex === 0) throw new SyntaxError("No path provided for image content."); // Note indexOf will return -1 if not found then we add 1 to it.
-    const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
+    const filepath = path.resolve(dir, token.properties[pathIndex].value);
     const parsed: ContentNode = {
         type: "Content",
         contentType: "image",
@@ -162,12 +162,12 @@ function parseContentImage(token: ImageBlockToken): ContentNode
 
     return parsed;
 }
-function parseContentVideo(token: VideoBlockToken): ContentNode
+function parseContentVideo(token: VideoBlockToken, dir: string): ContentNode
 {
     if (token.type != "VideoBlock") throw new Error("Parse Error: parseContentVideo called on token that is not a VideoBlock. Token Type: " + token.type);
     const pathIndex = token.properties.findIndex((p) => p.type === "ConfigKey" && p.value === "path") + 1;
     if (pathIndex === 0) throw new SyntaxError("No path provided for video content."); // Note indexOf will return -1 if not found then we add 1 to it.
-    const filepath = path.resolve(app.getAppPath(), token.properties[pathIndex].value);
+    const filepath = path.resolve(dir, token.properties[pathIndex].value);
     const parsed: ContentNode = {
         type: "Content",
         contentType: "video",
@@ -308,11 +308,16 @@ export function parse(tokens: KPToken[]): DocumentNode
     }
 
     let slide: SlideNode;
+    const meta = tokens.find(t => t.type === "KPMeta") as KPDocumentMetaData;
+    
+    if (!meta) throw new Error("DocumentMetadata token missing. This is a bug");
+
+    tokens.splice(tokens.indexOf(meta), 1);
+    const directory = meta.directory;
 
     for (let i = 0, len = tokens.length; i < len; i++)
     {
         const token = tokens[i];
-        console.log("Parsing token type:", token.type);
         switch (token.type)
         {
             case "SlideProperties":
@@ -350,7 +355,7 @@ export function parse(tokens: KPToken[]): DocumentNode
                 }
             case "ImageBlock":
                 {
-                    const content = parseContentImage(token as ImageBlockToken);
+                    const content = parseContentImage(token as ImageBlockToken, directory);
                     const config = seekContentConfig(slide.contents);
                     content.properties = { ...content.properties, ...config.properties };
                     slide.contents.push(content);
@@ -358,7 +363,7 @@ export function parse(tokens: KPToken[]): DocumentNode
                 }
             case "VideoBlock":
                 {
-                    const content = parseContentVideo(token as VideoBlockToken);
+                    const content = parseContentVideo(token as VideoBlockToken, directory);
                     const config = seekContentConfig(slide.contents);
                     content.properties = { ...content.properties, ...config.properties };
                     slide.contents.push(content);

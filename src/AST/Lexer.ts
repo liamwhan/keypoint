@@ -56,8 +56,9 @@ function log(...args: any[]): void
     }
 }
 
-const lexer = function (str: string, isInclude: boolean = false)
+const lexer = function (str: string, filepath: string)
 {
+    const directory = path.dirname(filepath);
     let line: number = 1;
     let column: number = 1;
     let i: number = 0;
@@ -435,13 +436,14 @@ const lexer = function (str: string, isInclude: boolean = false)
         };
     }
     
-    const tokens: KPToken[] = [];
+    const tokens: KPToken[] = [
+        {type: "KPMeta", path: filepath, directory } as KPDocumentMetaData
+    ];
     for (; i <= str.length;)
     {
 
         const token: KPToken = whitespace() ||
             lineComment() ||
-            include(isInclude) ||
             endOfLine() ||
             contentString() ||
             block() ||
@@ -458,22 +460,6 @@ const lexer = function (str: string, isInclude: boolean = false)
         }
     }
 
-
-    // Substitute includes
-    for (let j = 0; j < tokens.length; j++) {
-        const t = tokens[j];
-        if (t.type === "Include")
-        {
-            let {path: p} = (t as IncludeToken);
-            p = path.resolve(p);
-            p = p.indexOf(".kp") === -1 ? `${p}.kp` : p;
-            console.log("Processing include at", p);
-            const inc = fs.readFileSync(p, {encoding: "utf-8"});
-            const iTokens = lexer(inc, true).filter(it => it.type !== "EOF");
-            tokens.splice(j, 1, ...iTokens);
-        }
-    
-    }
     return tokens;
 
 }
