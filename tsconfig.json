@@ -26,6 +26,7 @@
       "src/System/PubSub.ts",
       "src/System/InputManager.ts",
       "src/System/Common.ts",
+      "src/AST/LexerUtils.ts",
       "src/AST/Lexer.ts",
       "src/AST/Parser.ts",
       "src/SlideRenderer.ts",

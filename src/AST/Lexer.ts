@@ -1,60 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { BLOCK_CLOSE, BLOCK_OPEN, IsAlpha, IsAlphaNum, IsEOF, IsLineCommentMarker, IsLineEnding, IsValidConfigValueChar, IsWhitespace, log } from "./LexerUtils";
 
-const BLOCK_OPEN: string = "[";
-const BLOCK_CLOSE: string = "]";
 
-function IsAlpha(char: string): boolean
-{
-    return ("a" <= char && char <= "z") || ("A" <= char && char <= "Z");
-}
-
-function IsNumeric(char: string): boolean
-{
-    return ("0" <= char && char <= "9");
-}
-function IsValidConfigValueChar(char: string)
-{
-    return IsAlphaNum(char) || char === "-" || char === "," || char === "%" || char === "." || char === "/";
-}
-
-function IsAlphaNum(char: string): boolean
-{
-    return IsAlpha(char) || IsNumeric(char);
-}
-
-function IsWhitespace(char: string): boolean
-{
-    return char === " " || char == "\t";
-}
-
-function IsLineCommentMarker(char: string)
-{
-    return char === "#";
-}
-
-function IsLineEnding(char: string): boolean
-{
-    return char === "\r" || char === "\n";
-}
-
-function IsEOF(char: string | undefined): boolean
-{
-    return char === undefined;
-}
-
-function IsIncludeOp(char: string): boolean
-{
-    return char === '!';
-}
-
-function log(...args: any[]): void
-{
-    if (false)
-    {
-        console.log(...args);
-    }
-}
 
 const lexer = function (str: string, filepath: string)
 {
@@ -405,32 +353,6 @@ const lexer = function (str: string, filepath: string)
         return {
             type: "SlideProperties",
             properties,
-            start,
-            end
-        };
-    }
-
-    function include(isInclude: boolean): IncludeToken | null
-    {
-        if (!IsIncludeOp(char)) return null;
-        const start = position();
-        next();
-        // Skip the "include" identifier if present
-        while (IsAlpha(char)) next();
-        while (IsWhitespace(char)) next();
-        let path = "";
-        while (!IsLineEnding(char))
-        {
-            path += char;
-            next();
-        }
-        const end = position();
-        while (IsLineEnding(char)) next();
-
-        if (isInclude) throw new SyntaxError("You can only include from your base file. Included files can not contain include expressions"); // If we're already inside the include skip the include expression to prevent infinite recursion
-        return {
-            type: "Include",
-            path,
             start,
             end
         };

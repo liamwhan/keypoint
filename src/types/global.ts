@@ -32,6 +32,7 @@ interface SlideProperties
     background?: string;
     transition?: SlideTransition;
     header?: string;
+    footer?: string;
 }
 
 interface Offset {
@@ -47,6 +48,8 @@ interface SlideState
     slideCount: number;
     slides: SlideNode[];
     slideDoc: DocumentNode;
+    slideHasVideo: () => boolean;
+    videoPlaying: boolean;
     render: () => void;
     back: () => void;
     forward: () => void;

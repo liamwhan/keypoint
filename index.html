@@ -110,13 +110,47 @@
       box-shadow: 0 0 0 2px #5e6fba, 0 0 #d3daf8;
       transform: translate3d(0, 0, -1em);
     }
+
+    .rel_outer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .abs_inner
+    {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100vw;
+      height: 100vh;
+    }
+    .z-10 {
+      z-index: 10;
+    }
+
   </style>
 </head>
 
 <body>
-  <canvas id="cnv" class="hide"></canvas>
-  <div class="button-container">
-    <button class="open">Open Deck</button>
+  <div class="rel_outer">
+    <div class="abs_inner">
+      <canvas id="cnv" class="hide"></canvas>
+    </div>
+  </div>
+  <div class="rel_outer">
+    <div class="abs_inner">
+      <div class="button-container">
+        <button id="btnOpen" class="open">Open Deck</button>
+      </div>
+    </div>
+  </div>
+  <div id="play-container" class="rel_outer hide z-10">
+    <div class="abs_inner">
+      <div class="button-container">
+        <button id="btnPlay" class="open">&#x25B6; Play</button>
+      </div>
+    </div>
   </div>
 </body>
 <script src="./dist/System/PubSub.js"></script>

@@ -2,9 +2,35 @@ window.PS.Subscribe(Channel.KEYDOWN, "SlideRenderer", (key: string, KeyState: Ke
 {
     if (key === " ")
     {
-        // TODO(liam): Enable video playback here
+        playSlideVideo();
     }
 });
+
+function playSlideVideo()
+{
+    const slideState = window.SlideState;
+    if (!slideState) {
+        console.error("SlideState is not set");
+        return;
+    }
+
+    if (slideState.slideHasVideo())
+    {
+        if (slideState.videoPlaying)
+        {
+            stopAll();
+            renderContents(slideState.activeSlide, undefined, true);
+        }
+        else {
+
+            const videoNode = slideState.activeSlide.contents.find(c => c.type === "Content" && (c as ContentNode).contentType === "video");
+            if (!videoNode) return;
+            slideState.videoPlaying = true;
+            drawVideo(videoNode as ContentNode, true);
+        }
+
+    }
+}
 
 let canvas: HTMLCanvasElement,
     dpr: number = 1.0,
@@ -206,7 +232,7 @@ function drawImage(content: ContentNode, ctx?: CanvasRenderingContext2D): void
     ctx.drawImage(img, x, y, dw, dh);
 }
 
-function drawVideo(content: ContentNode, ctx?: CanvasRenderingContext2D, autoplay: boolean = true): void
+function drawVideo(content: ContentNode, play: boolean, ctx?: CanvasRenderingContext2D): void
 {
 
     const videoPath = content.value;
@@ -228,7 +254,7 @@ function drawVideo(content: ContentNode, ctx?: CanvasRenderingContext2D, autopla
         window.requestAnimationFrame(playCallback);
     };
     video.addEventListener("play", playCallback);
-    if (autoplay)
+    if (play)
     {
         video.play();
     }
@@ -346,7 +372,6 @@ function drawHeader(headerName: string, slide: SlideNode): void
     if (!slide.document.headers.hasOwnProperty(headerName)) return;
     const header = slide.document.headers[headerName];
     if (!header) return;
-    console.log("drawHeader", header)
     
     const style = header.contents.find(c => c.type === "StyleBlock") as StyleBlockNode;
     if (!style) throw new Error("Could not find a style block in the header contents. This is a bug, there should be a default one");
@@ -364,7 +389,6 @@ function drawHeader(headerName: string, slide: SlideNode): void
         const ph = ptm.actualBoundingBoxAscent;
         const x = canvas.width - pw - padX;
         const y = ph + padY;
-        console.log("Drawing Page Number", text, "at", `{${x},${y}}`);
         ctx.fillText(text, x, y);
     }
     
@@ -381,29 +405,28 @@ function drawHeader(headerName: string, slide: SlideNode): void
         const hh = htm.actualBoundingBoxAscent;
         const x = padX;
         const y = hh + padY;
-        console.log("Drawing Header", text, "at", `{${x},${y}}`);
         ctx.fillText(text, x, y);
     }
     ctx.restore();
 
 }
-function drawFooter(headerName: string, slide: SlideNode): void
+function drawFooter(footerName: string, slide: SlideNode): void
 {
     const ctx = getCtx();
     ctx.save();
-    if (!slide.document.headers.hasOwnProperty(headerName)) return;
-    const header = slide.document.headers[headerName];
-    if (!header) return;
-    console.log("drawHeader", header)
+    if (!slide.document.footers.hasOwnProperty(footerName)) return;
+    const footer = slide.document.footers[footerName];
+    if (!footer) return;
+    console.log("drawHeader", footer)
     
-    const style = header.contents.find(c => c.type === "StyleBlock") as StyleBlockNode;
+    const style = footer.contents.find(c => c.type === "StyleBlock") as StyleBlockNode;
     if (!style) throw new Error("Could not find a style block in the header contents. This is a bug, there should be a default one");
     const fontSize = parseInt(style.properties["font-size"].replace("px", "")) * 2;
     
     ctx.font = `${fontSize}px ${style.properties.font}`;
     ctx.fillStyle = `#${style.properties["font-color"]}`;
     ctx.textAlign = style.properties.align;
-    if (header.properties["page-number"])
+    if (footer.properties["page-number"])
     {
         ctx.textAlign = "right";
         const text = `${slide.id + 1}`;
@@ -416,7 +439,7 @@ function drawFooter(headerName: string, slide: SlideNode): void
         ctx.fillText(text, x, y);
     }
     
-    const contents = header.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "string");
+    const contents = footer.contents.filter(c => c.type === "Content" && (c as ContentNode).contentType === "string");
     const line = 0;
     ctx.textAlign = style.properties.align;
     
@@ -515,12 +538,21 @@ function getPreviousSlide(toSlide: SlideNode): SlideNode | null
     return (toSlide.id > renderState.activeSlide.id) ? toSlide.prev : toSlide.next;
 }
 
-function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, autoplay?: boolean): void
+function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, clearCanvas: boolean = false): void
 {
     updateSlideTextDimensions(slide);
+    if (clearCanvas)
+    {
+        clear(slide.properties.background);
+    }
     if (slide.properties.header)
     {
         drawHeader(slide.properties.header, slide);
+    }
+
+    if (slide.properties.footer)
+    {
+        drawFooter(slide.properties.footer, slide);
     }
     
     ctx = ctx ?? getCtx();
@@ -537,7 +569,7 @@ function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, autopl
                     drawImage(c as ContentNode, ctx);
                     break;
                 case "video":
-                    drawVideo(c as ContentNode, ctx, autoplay);
+                    drawVideo(c as ContentNode, false, ctx);
                     break;
                 default:
                     break;
@@ -545,40 +577,7 @@ function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, autopl
         }
     }
 }
-
-function renderClear(s: SlideNode)
-{
-    updateSlideTextDimensions(s);
-
-    clear(s.properties.background);
-    if (s.properties.header)
-    {
-        drawHeader(s.properties.header, s);
-    }
-
-    for (let c of s.contents)
-    {
-        if (c.type === "Content")
-        {
-            switch ((c as ContentNode).contentType)
-            {
-                case "string":
-                    drawText(c as ContentNode);
-                    break;
-                case "image":
-                    drawImage(c as ContentNode);
-                    break;
-                case "video":
-                    drawVideo(c as ContentNode, undefined, true);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
-
-type TransitionCompleteCallback = (slide: SlideNode) => void;
+type TransitionCompleteCallback = (slide: SlideNode, ctx?: CanvasRenderingContext2D, clearCanvas?: boolean) => void;
 
 function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: TransitionCompleteCallback)
 {
@@ -586,7 +585,7 @@ function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: Tran
     if (from === null || transition.type === "none")
     {
         renderState.activeSlide = slide;
-        onComplete(slide);
+        onComplete(slide, undefined, true);
         return;
     }
     const prevSlide = from;
@@ -622,17 +621,30 @@ function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: Tran
 
 }
 
+function btnPlayClickHandler (e: Event): void{
+    const btnPlay = document.querySelector("#btnPlay") as HTMLButtonElement;
+    btnPlay.parentElement.parentElement.parentElement.classList.add("hide");
+    playSlideVideo();
+}
 
 function changeSlide(slide: SlideNode): void
 {
     stopAll();
+    if (window.SlideState.slideHasVideo())
+    {
+        const btnWrapper = document.querySelector("#play-container");
+        btnWrapper.classList.remove("hide");
+        const btnPlay = document.querySelector("#btnPlay") as HTMLButtonElement;
+        btnPlay.removeEventListener("click", btnPlayClickHandler);
+        btnPlay.addEventListener("click", btnPlayClickHandler);
+    }
     if (slide === renderState.activeSlide) 
     {
-        renderClear(slide);
+        renderContents(slide);
         return;
     }
     const prev = getPreviousSlide(slide);
-    transitionTo(slide, prev, renderClear);
+    transitionTo(slide, prev, renderContents);
 
 }
 
