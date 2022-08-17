@@ -10,6 +10,22 @@
     content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval';" />
   <title>Keypoint</title>
   <style>
+    --root {
+      /* CSS HEX */
+      --congo-pink: #fe938cff;
+      --tumbleweed: #e6b89cff;
+      --wheat: #ead2acff;
+      --pewter-blue: #9cafb7ff;
+      --celadon-blue: #4281a4ff;
+
+      /* CSS HSL */
+      --congo-pink: hsla(4, 98%, 77%, 1);
+      --tumbleweed: hsla(23, 60%, 76%, 1);
+      --wheat: hsla(37, 60%, 80%, 1);
+      --pewter-blue: hsla(198, 16%, 66%, 1);
+      --celadon-blue: hsla(201, 43%, 45%, 1);
+    }
+
     html,
     body {
       min-width: 100vw;
@@ -116,33 +132,33 @@
       position: relative;
     }
 
-    .rel_outer > * {
+    .rel_outer>* {
       position: absolute;
     }
+
     .z10 {
       z-index: 10;
     }
+
     .z11 {
       z-index: 11;
     }
-
   </style>
 </head>
 
 <body>
   <div class="rel_outer">
-   
-      <canvas id="cnv" class="hide"></canvas>
-      <div class="button-container">
-        <button id="btnOpen" class="open">Open Deck</button>
-      </div>
-   
-      <div class="button-container hide">
-        <button id="btnPlay" class="open">&#x25B6; Play</button>
-      </div>
+    <canvas id="cnv" class="hide"></canvas>
+    <div class="button-container">
+      <button id="btnOpen" class="open">Open Deck</button>
+    </div>
+
+    <div class="button-container hide">
+      <button id="btnPlay" class="open">&#x25B6; Play</button>
+    </div>
   </div>
-    
-  
+
+
 </body>
 <script src="./dist/System/PubSub.js"></script>
 <script src="./dist/SlideRenderer.js"></script>

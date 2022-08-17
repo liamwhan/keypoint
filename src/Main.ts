@@ -42,8 +42,9 @@ const openFile = (): void => {
 
 const createWindow = ():void => {
     win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1280,
+        height: 720,
+        fullscreenable: true,
         webPreferences: {
             preload: path.join(__dirname, "Preload.js")
 
@@ -65,7 +66,10 @@ const createWindow = ():void => {
         }
     ]);
     Menu.setApplicationMenu(menu);
-    win.webContents.openDevTools();
+    if (process.env.NODE_ENV === "Development")
+    {
+        win.webContents.openDevTools();
+    }
     ipcMain.handle("relativePath", (event, fragment) => path.resolve(__dirname, fragment));
     ipcMain.handle("load", (event, file) => load(file));
     ipcMain.handle("openFile", (event) => openFile())

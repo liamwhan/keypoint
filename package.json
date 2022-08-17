@@ -14,10 +14,10 @@
   "version": "0.0.1",
   "main": "dist/Main.js",
   "scripts": {
-    "start": "electron-forge start -- --log-level=3" ,
+    "start": "set NODE_ENV= && electron-forge start -- --log-level=3" ,
     "watch": "tsc -w",
     "package": "electron-forge package",
-    "make": "electron-forge make --arch=x64"
+    "make": "electron-forge make --arch=x64 --asar"
   },
   "repository": {
     "type": "git",
@@ -35,7 +35,10 @@
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "asar": true,
+        "icon": "./misc/keypoint.ico"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",

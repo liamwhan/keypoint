@@ -76,13 +76,33 @@ function docLoaded(ast: DocumentNode, file: string): void
 
 }
 
-function keyUpHandler(key: string): void {
+async function keyUpHandler(key: string): Promise<void> {
     const ss = window.SlideState;
         if (key === "ArrowLeft") {
             ss.back();
         }
-        else if (key == "ArrowRight") {
+        else if (key === "ArrowRight") {
             ss.forward();
+        }
+        else if (key === "F11")
+        {
+            if (document.fullscreenElement)
+            {
+                await document.exitFullscreen();
+                resizeHandler();
+            }
+            else {
+                await document.querySelector("body").requestFullscreen({navigationUI: "hide"});
+                resizeHandler();
+            }
+        }
+        else if (key === "ESC")
+        {
+            if (document.fullscreenElement)
+            {
+                await document.exitFullscreen();
+                resizeHandler();
+            }
         }
 }
 
@@ -95,8 +115,12 @@ function keyDownHandler(key: string, KeyState: KeyState) : void
 }
 
 const resizeHandler = () => {
-    initCanvas();
-    window.SlideState.render();
+    if (window.SlideState)
+    {
+        initCanvas();
+        window.SlideState.render();
+
+    }
 };
 
 DOMReady(async () => {
