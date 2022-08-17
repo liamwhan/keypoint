@@ -6,6 +6,8 @@ window.PS.Subscribe(Channel.KEYDOWN, "SlideRenderer", (key: string, KeyState: Ke
     }
 });
 
+const btnPlay = document.querySelector("#btnPlay") as HTMLButtonElement;
+
 function playSlideVideo()
 {
     const slideState = window.SlideState;
@@ -171,7 +173,8 @@ function blend(colour1: string, a1: number, colour2: string, a2: number): void
     ctx.globalAlpha = a1;
     ctx.fillStyle = colour1;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
+    ctx.restore();
     ctx.globalAlpha = a2;
     ctx.fillStyle = colour2;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -540,11 +543,11 @@ function getPreviousSlide(toSlide: SlideNode): SlideNode | null
 
 function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, clearCanvas: boolean = false): void
 {
-    updateSlideTextDimensions(slide);
     if (clearCanvas)
     {
         clear(slide.properties.background);
     }
+    updateSlideTextDimensions(slide);
     if (slide.properties.header)
     {
         drawHeader(slide.properties.header, slide);
@@ -577,19 +580,24 @@ function renderContents(slide: SlideNode, ctx?: CanvasRenderingContext2D, clearC
         }
     }
 }
+
+function slideHasVideo(slide: SlideNode) : boolean
+{
+    return slide.contents.some((c: KPNode) => c.type === "Content" && (c as ContentNode).contentType === "video");
+}
+
 type TransitionCompleteCallback = (slide: SlideNode, ctx?: CanvasRenderingContext2D, clearCanvas?: boolean) => void;
 
-function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: TransitionCompleteCallback)
+function transitionTo(to: SlideNode, from: SlideNode | null, onComplete: TransitionCompleteCallback)
 {
-    const transition = slide.properties.transition;
+    const transition = to.properties.transition;
     if (from === null || transition.type === "none")
     {
-        renderState.activeSlide = slide;
-        onComplete(slide, undefined, true);
+        renderState.activeSlide = to;
+        onComplete(to, undefined, true);
         return;
     }
-    const prevSlide = from;
-    renderState.activeSlide = slide;
+    renderState.activeSlide = to;
 
     const ctx = getCtx();
     ctx.save();
@@ -597,23 +605,35 @@ function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: Tran
     const af: FrameRequestCallback = (t) =>
     {
         if (start === undefined) start = t;
-        let elasped = t - start;
-        if (elasped >= transition.duration)
+        let dt = t - start;
+        if (dt >= transition.duration)
         {
             ctx.restore();
-            onComplete(slide);
+            setPlayButtonAlpha(1);
+            onComplete(to, undefined, true);
             return;
         }
-        const a = elasped / transition.duration;
-        const a2 = 1 - a;
+
         
-        blend(slide.properties.background, a, prevSlide.properties.background, a2);
+        const a = dt / transition.duration;
+        const a2 = 1 - a;
+        if (slideHasVideo(to))
+        {
+            setPlayButtonAlpha(a);
+        }
+        else if (slideHasVideo(from))
+        {
+            setPlayButtonAlpha(a2);
+        }
+        
+        blend(to.properties.background, a, from.properties.background, a2);
         
         ctx.globalAlpha = a2;
-        renderContents(prevSlide, ctx, false);
+        renderContents(from, ctx, false);
 
         ctx.globalAlpha = a;
-        renderContents(slide, ctx, false);
+        renderContents(to, ctx, false);
+        ctx.restore();
         
         window.requestAnimationFrame(af);
     };
@@ -623,20 +643,38 @@ function transitionTo(slide: SlideNode, from: SlideNode | null, onComplete: Tran
 
 function btnPlayClickHandler (e: Event): void{
     const btnPlay = document.querySelector("#btnPlay") as HTMLButtonElement;
-    btnPlay.parentElement.parentElement.parentElement.classList.add("hide");
+    btnPlay.parentElement.classList.add("hide");
     playSlideVideo();
+}
+
+function setPlayButtonAlpha(a: number)
+{
+    const css = `${a.toFixed(1)}`;
+    btnPlay.parentElement.style.opacity = css;
+}
+
+function showPlayButton(): void
+{
+    btnPlay.parentElement.classList.remove("hide");
+    btnPlay.addEventListener("click", btnPlayClickHandler);
+}
+
+function hidePlayButton(): void
+{
+    btnPlay.parentElement.classList.add("hide")
+    btnPlay.removeEventListener("click", btnPlayClickHandler);
 }
 
 function changeSlide(slide: SlideNode): void
 {
     stopAll();
-    if (window.SlideState.slideHasVideo())
+    if (slideHasVideo(slide))
     {
-        const btnWrapper = document.querySelector("#play-container");
-        btnWrapper.classList.remove("hide");
-        const btnPlay = document.querySelector("#btnPlay") as HTMLButtonElement;
-        btnPlay.removeEventListener("click", btnPlayClickHandler);
-        btnPlay.addEventListener("click", btnPlayClickHandler);
+        showPlayButton();
+    } 
+    else 
+    {
+        hidePlayButton();
     }
     if (slide === renderState.activeSlide) 
     {

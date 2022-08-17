@@ -12,7 +12,7 @@
   },
   "name": "keypoint",
   "version": "0.0.1",
-  "main": "dist/index.js",
+  "main": "dist/Main.js",
   "scripts": {
     "start": "electron-forge start -- --log-level=3" ,
     "watch": "tsc -w",

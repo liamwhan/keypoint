@@ -62,8 +62,8 @@ function docLoaded(ast: DocumentNode, file: string): void
 {
     console.log(ast);
     const openButton = document.querySelector("#btnOpen") as HTMLButtonElement;
+    openButton.parentElement.classList.add("hide");
     canvas = document.querySelector("canvas#cnv") as HTMLCanvasElement;
-    openButton.parentElement.parentElement.parentElement.classList.toggle("hide");
     canvas.classList.toggle("hide");
     window.removeEventListener("resize", resizeHandler);
 

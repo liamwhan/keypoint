@@ -30,7 +30,7 @@
       "src/AST/Lexer.ts",
       "src/AST/Parser.ts",
       "src/SlideRenderer.ts",
-      "src/index.ts",
+      "src/Main.ts",
       "src/FrontEnd.ts",
       "src/Preload.ts"
       
