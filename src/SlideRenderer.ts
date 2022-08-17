@@ -24,7 +24,7 @@ function playSlideVideo()
             renderContents(slideState.activeSlide, undefined, true);
         }
         else {
-
+            hidePlayButton();
             const videoNode = slideState.activeSlide.contents.find(c => c.type === "Content" && (c as ContentNode).contentType === "video");
             if (!videoNode) return;
             slideState.videoPlaying = true;
@@ -527,6 +527,12 @@ function drawText(content: ContentNode, ctx?: CanvasRenderingContext2D): void
 
 function stopAll()
 {
+
+    window.SlideState.videoPlaying = false;
+    if (window.SlideState.slideHasVideo())
+    {
+        showPlayButton();
+    }
     for (const v of preloadedVideos)
     {
         const { video } = v;
@@ -678,7 +684,7 @@ function changeSlide(slide: SlideNode): void
     }
     if (slide === renderState.activeSlide) 
     {
-        renderContents(slide);
+        renderContents(slide, undefined, true);
         return;
     }
     const prev = getPreviousSlide(slide);

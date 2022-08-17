@@ -45,6 +45,7 @@ const createWindow = ():void => {
         width: 1280,
         height: 720,
         fullscreenable: true,
+        autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "Preload.js")
 

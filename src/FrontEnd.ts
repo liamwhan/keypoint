@@ -92,7 +92,7 @@ async function keyUpHandler(key: string): Promise<void> {
                 resizeHandler();
             }
             else {
-                await document.querySelector("body").requestFullscreen({navigationUI: "hide"});
+                await document.querySelector("#container").requestFullscreen({navigationUI: "hide"});
                 resizeHandler();
             }
         }
