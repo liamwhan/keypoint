@@ -4,7 +4,7 @@ import { BLOCK_CLOSE, BLOCK_OPEN, IsAlpha, IsAlphaNum, IsEOF, IsLineCommentMarke
 
 
 
-const lexer = function (str: string, filepath: string)
+const lexer = function (str: string, filepath: string) : KPToken[]
 {
     const directory = path.dirname(filepath);
     let line: number = 1;
